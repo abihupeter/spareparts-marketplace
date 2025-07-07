@@ -27,7 +27,7 @@ const Shop: React.FC = () => {
     let filtered = PRODUCTS.filter(product => {
       const matchesSearch = product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                            product.brand.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesCategory = !selectedCategory || product.category === selectedCategory;
+      const matchesCategory = !selectedCategory || selectedCategory === 'all' || product.category === selectedCategory;
       const matchesBrand = selectedBrands.length === 0 || selectedBrands.includes(product.brand);
       const matchesPrice = product.price >= priceRange[0] && product.price <= priceRange[1];
       
@@ -111,7 +111,7 @@ const Shop: React.FC = () => {
                     <SelectValue placeholder="All Categories" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Categories</SelectItem>
+                    <SelectItem value="all">All Categories</SelectItem>
                     {CATEGORIES.map(category => (
                       <SelectItem key={category.id} value={category.id}>
                         {category.name}
@@ -229,7 +229,7 @@ const Shop: React.FC = () => {
                 <Button
                   onClick={() => {
                     setSearchQuery('');
-                    setSelectedCategory('');
+                    setSelectedCategory('all');
                     setSelectedBrands([]);
                     setPriceRange([0, 500]);
                   }}
