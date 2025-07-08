@@ -8,7 +8,7 @@ const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-foreground">PartShop</h3>
+            <h3 className="text-lg font-semibold text-foreground">SparePartShop</h3>
             <p className="text-muted-foreground text-sm">
               Your trusted source for quality automotive spare parts. We provide genuine parts for all major vehicle brands.
             </p>
@@ -40,16 +40,16 @@ const Footer: React.FC = () => {
           <div className="space-y-4">
             <h4 className="font-medium text-foreground">Contact</h4>
             <div className="space-y-2 text-sm text-muted-foreground">
-              <p>📧 support@partshop.com</p>
-              <p>📞 +1 (555) 123-4567</p>
-              <p>📍 123 Auto Parts Ave<br />Detroit, MI 48201</p>
+              <p>📧 support@abihushop.com</p>
+              <p>📞 +254 794 436 286</p>
+              <p>📍 123 Milimani Ave<br />CarWash, Kasarani 201</p>
             </div>
           </div>
         </div>
 
         <div className="border-t mt-8 pt-8 text-center">
           <p className="text-sm text-muted-foreground">
-            © 2024 PartShop. All rights reserved.
+            © 2024 sparePartShop. All rights reserved.
           </p>
         </div>
       </div>

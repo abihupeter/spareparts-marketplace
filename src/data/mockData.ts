@@ -10,9 +10,16 @@ export const USERS: User[] = [
   },
   { 
     id: 2, 
-    name: "Customer One", 
+    name: "abihu", 
     email: "customer@example.com", 
     password: "customer123", 
+    role: "customer" 
+  },
+  { 
+    id: 3, 
+    name: "peter", 
+    email: "peter@example.com", 
+    password: "customer12345", 
     role: "customer" 
   },
 ];
@@ -33,7 +40,7 @@ export const CATEGORIES: Category[] = [
   {
     id: 'filters',
     name: 'Filters',
-    image: 'https://images.unsplash.com/photo-1609191639876-8df3c90f66c1?w=400',
+    image: 'https://media.istockphoto.com/id/652660336/photo/auto-mechanic-service-and-repair.webp?a=1&b=1&s=612x612&w=0&k=20&c=TK7MS-oJwc87KKNpJB9NW4IUMmrypmdmrvl8GUcorKA=',
     description: 'Air, oil, and fuel filters for all vehicles'
   },
   {
@@ -51,7 +58,13 @@ export const CATEGORIES: Category[] = [
   {
     id: 'transmission',
     name: 'Transmission',
-    image: 'https://images.unsplash.com/photo-1609520778163-a16fb3b9453e?w=400',
+    image: 'https://media.istockphoto.com/id/626235228/photo/spare-part-of-transmission-car-system.webp?a=1&b=1&s=612x612&w=0&k=20&c=5GE-1q9KBUNgMYaEGFTZM520cc5jNFDbgnGzQzFt6vc=',
+    description: 'Transmission parts and drivetrain components'
+  },
+  {
+    id: 'headlight',
+    name: 'headlights',
+    image: 'https://images.unsplash.com/photo-1542282088-fe8426682b8f?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTR8fGhlYWRsaWdodHN8ZW58MHx8MHx8fDA%3D',
     description: 'Transmission parts and drivetrain components'
   }
 ];
@@ -62,7 +75,7 @@ export const PRODUCTS: Product[] = [
     title: "Premium Engine Oil Filter",
     description: "High-quality oil filter designed for maximum engine protection and performance.",
     price: 29.99,
-    image: "https://images.unsplash.com/photo-1609191639876-8df3c90f66c1?w=500",
+    image: "https://media.istockphoto.com/id/1074469344/photo/oil-filter-change.webp?a=1&b=1&s=612x612&w=0&k=20&c=RmxZir8cG68vpywj6G78igAfZ9qaIo2RdfvZaphB39A=",
     category: "filters",
     brand: "Toyota",
     partNumber: "90915-YZZD4",
@@ -100,7 +113,7 @@ export const PRODUCTS: Product[] = [
     title: "Air Intake Filter",
     description: "High-flow air filter for improved engine performance and fuel efficiency.",
     price: 24.99,
-    image: "https://images.unsplash.com/photo-1621839673705-6617adf9e890?w=500",
+    image: "https://media.istockphoto.com/id/845260026/photo/air-filter-in-a-car.webp?a=1&b=1&s=612x612&w=0&k=20&c=Byw0WbwtWy1qvnSZjxHr0fYrVzW52D69aTp3TInt9jo=",
     category: "filters",
     brand: "Honda",
     partNumber: "17220-5AA-A00",
@@ -157,7 +170,7 @@ export const PRODUCTS: Product[] = [
     title: "Transmission Filter Kit",
     description: "Complete transmission filter kit with gasket for smooth shifting.",
     price: 39.99,
-    image: "https://images.unsplash.com/photo-1609520778163-a16fb3b9453e?w=500",
+    image: "https://images.unsplash.com/photo-1646687078585-3a243a532de9?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8dHJhbnNtaXNzaW9uJTIwZmlsdGVyJTIwa2l0fGVufDB8fDB8fHww",
     category: "transmission",
     brand: "Chevrolet",
     partNumber: "24208576",
