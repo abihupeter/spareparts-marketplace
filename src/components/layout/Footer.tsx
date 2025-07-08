@@ -1,7 +1,5 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import AboutUs from "@/pages/AboutUs"
-import ContactUs from "@/pages/ContactUs"
 
 const Footer: React.FC = () => {
   return (
