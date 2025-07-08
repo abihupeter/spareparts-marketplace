@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, User, LogOut, Home, Menu, X } from 'lucide-react';
+import { ShoppingCart, User, LogOut, Home, Menu, X, Car } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
@@ -38,9 +38,9 @@ const Navbar: React.FC = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
             <div className="gradient-primary rounded-lg p-2">
-              <Home className="h-6 w-6 text-primary-foreground" />
+              <Car className="h-6 w-6 text-primary-foreground" />
             </div>
-            <span className="text-xl font-bold text-foreground">PartShop</span>
+            <span className="text-xl font-bold text-foreground">SparePart Marketplace</span>
           </Link>
 
           {/* Desktop Navigation */}

@@ -95,8 +95,8 @@ const Login: React.FC = () => {
       <div className="w-full max-w-md">
         <Card className="shadow-card">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold">Welcome</CardTitle>
-            <CardDescription>Access your PartShop account</CardDescription>
+            <CardTitle className="text-2xl font-bold">Welcome!</CardTitle>
+            <CardDescription>Access your account</CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue={tab} value={tab} onValueChange={(value: any) => setTab(value)} className="w-full">
@@ -135,6 +135,49 @@ const Login: React.FC = () => {
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? 'Signing In...' : 'Sign In'}
                   </Button>
+
+                  <div className="my-4 flex items-center">
+                    <hr className="flex-grow border-t border-gray-300" />
+                    <span className="mx-2 text-sm text-muted-foreground">or</span>
+                    <hr className="flex-grow border-t border-gray-300" />
+                  </div>
+                  <div className="my-4 flex items-center">
+
+                    <span className="mx-2 text-sm text-muted-foreground">Continue with:</span>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 min-w-[48%] flex items-center justify-center gap-2"
+                      onClick={() => console.log('Login with Google')}
+                    >
+                      <img src="/icons/google.jpg" alt="Google" className="h-5 w-5" />
+                      Google
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      className="flex-1 min-w-[48%] flex items-center justify-center gap-2"
+                      onClick={() => console.log('Login with Apple')}
+                    >
+                      <img src="/icons/apple.jpg" alt="Apple" className="h-5 w-5" />
+                      Apple
+                    </Button>
+                  </div>
+
+                  <div>
+                    <Button
+                      variant="outline"
+                      className="w-full flex items-center justify-center gap-2"
+                      onClick={() => console.log('Login with GitHub')}
+                    >
+                      <img src="/icons/github.jpg" alt="GitHub" className="h-5 w-5" />
+                      GitHub
+                    </Button>
+                  </div>
+
+
                 </form>
               </TabsContent>
 
@@ -193,6 +236,48 @@ const Login: React.FC = () => {
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? 'Signing Up...' : 'Sign Up'}
                   </Button>
+                  <div className="my-4 flex items-center">
+                    <hr className="flex-grow border-t border-gray-300" />
+                    <span className="mx-2 text-sm text-muted-foreground">or</span>
+                    <hr className="flex-grow border-t border-gray-300" />
+                  </div>
+                  
+                  <div className="my-4 flex items-center">
+
+                  <span className="text-bold mx-2 text-sm text-muted-foreground">Log In with:</span>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 min-w-[48%] flex items-center justify-center gap-2"
+                      onClick={() => console.log('Login with Google')}
+                    >
+                      <img src="/icons/google.jpg" alt="Google" className="h-5 w-5" />
+                      Google
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      className="flex-1 min-w-[48%] flex items-center justify-center gap-2"
+                      onClick={() => console.log('Login with Apple')}
+                    >
+                      <img src="/icons/apple.jpg" alt="Apple" className="h-5 w-5" />
+                      Apple
+                    </Button>
+                  </div>
+
+                  <div>
+                    <Button
+                      variant="outline"
+                      className="w-full flex items-center justify-center gap-2"
+                      onClick={() => console.log('Login with GitHub')}
+                    >
+                      <img src="/icons/github.jpg" alt="GitHub" className="h-5 w-5" />
+                      GitHub
+                    </Button>
+                  </div>
+
                 </form>
               </TabsContent>
             </Tabs>
