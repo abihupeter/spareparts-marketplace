@@ -7,11 +7,8 @@ const Footer: React.FC = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Company Info */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-foreground">SparePartShop</h3>
-            <p className="text-muted-foreground text-sm">
-              Your trusted source for quality automotive spare parts. We provide genuine parts for all major vehicle brands.
-            </p>
+          <div className="lg:col-span-1">
+            <div className="font-fonarto text-black text-[45px] font-bold text-4xl">SpareParts Marketplace </div>
           </div>
 
           {/* Quick Links */}

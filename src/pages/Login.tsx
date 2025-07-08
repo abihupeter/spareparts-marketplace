@@ -282,16 +282,16 @@ const Login: React.FC = () => {
               </TabsContent>
             </Tabs>
 
-            <div className="mt-6 text-center">
+            {/*<div className="mt-6 text-center">
               <p className="text-sm text-muted-foreground">Demo Credentials:</p>
               <div className="mt-2 space-y-1 text-xs text-muted-foreground">
                 <p><strong>Vendor:</strong> vendor@example.com / vendor123</p>
                 <p><strong>Customer:</strong> customer@example.com / customer123</p>
               </div>
             </div>
-
-            <div className="mt-6 text-center">
-              <Link to="/" className="text-sm text-primary hover:underline">
+            */}
+            <div className="mt-6 text-left">
+              <Link to="/" className="text-sm text-black text-primary hover:underline">
                 ← Back to Home
               </Link>
             </div>

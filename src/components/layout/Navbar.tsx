@@ -40,7 +40,7 @@ const Navbar: React.FC = () => {
             <div className="gradient-primary rounded-lg p-2">
               <Car className="h-6 w-6 text-primary-foreground" />
             </div>
-            <span className="text-xl font-bold text-foreground">SparePart Marketplace</span>
+            <span className="font-fonarto text-xl font-bold text-foreground ">SparePart Marketplace</span>
           </Link>
 
           {/* Desktop Navigation */}
