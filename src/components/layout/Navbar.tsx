@@ -1,46 +1,83 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, User, LogOut, Home, Menu, X, Car } from 'lucide-react';
-import { Button } from '../ui/button';
-import { useAuth } from '../../contexts/AuthContext';
-import { useCart } from '../../contexts/CartContext';
-import { Badge } from '../ui/badge';
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { ShoppingCart, User, LogOut, Home, Menu, X, Car } from "lucide-react";
+import { Button } from "../ui/button";
+import { useAuth } from "../../contexts/AuthContext";
+import { useCart } from "../../contexts/CartContext";
+import { Badge } from "../ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '../ui/dropdown-menu';
+} from "../ui/dropdown-menu";
+import { ModeToggle } from "../ui/ThemeToggle";
 
-const Navbar: React.FC = () => {
+interface NavbarProps {
+  alwaysVisible?: boolean;
+}
+
+const Navbar: React.FC<NavbarProps> = ({ alwaysVisible = false }) => {
   const { user, logout } = useAuth();
   const { getTotalItems } = useCart();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showNavbar, setShowNavbar] = useState(false);
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    navigate("/");
   };
 
   const totalItems = getTotalItems();
 
   const navigationLinks = [
-    { to: '/', label: 'Home' },
-    { to: '/shop', label: 'Shop' },
+    { to: "/", label: "Home" },
+    { to: "/shop", label: "Shop" },
+    { to: "/sell", label: "Sell" },
+    { to: "/about-us", label: "About Us" },
+    { to: "/contact-us", label: "Contact Us" },
   ];
 
+  // Show navbar only after scroll
+useEffect(() => {
+  if (alwaysVisible) {
+    setShowNavbar(true);
+    return;
+  }
+
+  const handleScroll = () => {
+    setShowNavbar(window.scrollY > 80);
+  };
+
+  window.addEventListener("scroll", handleScroll);
+  return () => window.removeEventListener("scroll", handleScroll);
+}, [alwaysVisible]);
+  // Show navbar on initial load if alwaysVisible is true
+
   return (
-    <nav className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md">
+    <nav
+      className={`fixed top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md transition-all duration-300 ${
+        alwaysVisible || showNavbar
+          ? "opacity-100 translate-y-0"
+          : "opacity-0 -translate-y-10 pointer-events-none"
+      }`}
+    >
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <div className="gradient-primary rounded-lg p-2">
-              <Car className="h-6 w-6 text-primary-foreground" />
+            <div className="flex items-center gap-4">
+              <img
+                src="/icons/logo.png"
+                alt="Logo"
+                className="w-14 h-14 hover:scale-105"
+              />
+              <span className="font-bold font-fonarto text-3xl md:text-3xl text-primary hover:scale-105 transition-transform">
+                Tayari Spares🔧
+              </span>
             </div>
-            <span className="font-fonarto text-xl font-bold text-foreground ">SparePart Marketplace</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -58,7 +95,7 @@ const Navbar: React.FC = () => {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
-            {/* Cart */}
+            <ModeToggle />
             <Link to="/cart" className="relative">
               <Button variant="ghost" size="icon">
                 <ShoppingCart className="h-5 w-5" />
@@ -70,24 +107,32 @@ const Navbar: React.FC = () => {
               </Button>
             </Link>
 
-            {/* User Menu */}
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center space-x-2">
+                  <Button
+                    variant="ghost"
+                    className="flex items-center space-x-2"
+                  >
                     <User className="h-4 w-4" />
                     <span>{user.name}</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuItem asChild>
-                    <Link to="/dashboard" className="flex items-center space-x-2">
+                    <Link
+                      to="/dashboard"
+                      className="flex items-center space-x-2"
+                    >
                       <User className="h-4 w-4" />
                       <span>Dashboard</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="flex items-center space-x-2">
+                  <DropdownMenuItem
+                    onClick={handleLogout}
+                    className="flex items-center space-x-2"
+                  >
                     <LogOut className="h-4 w-4" />
                     <span>Logout</span>
                   </DropdownMenuItem>
@@ -107,7 +152,11 @@ const Navbar: React.FC = () => {
             className="md:hidden"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
-            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            {mobileMenuOpen ? (
+              <X className="h-5 w-5" />
+            ) : (
+              <Menu className="h-5 w-5" />
+            )}
           </Button>
         </div>
 
@@ -125,10 +174,14 @@ const Navbar: React.FC = () => {
                   {link.label}
                 </Link>
               ))}
-              
               <div className="flex items-center justify-between px-2 pt-4 border-t">
-                <Link to="/cart" className="relative" onClick={() => setMobileMenuOpen(false)}>
-                  <Button variant="ghost" size="sm" className="flex items-center space-x-2">
+                <ModeToggle />
+                <Link to="/cart" onClick={() => setMobileMenuOpen(false)}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex items-center space-x-2"
+                  >
                     <ShoppingCart className="h-4 w-4" />
                     <span>Cart</span>
                     {totalItems > 0 && (
@@ -141,8 +194,13 @@ const Navbar: React.FC = () => {
 
                 {user ? (
                   <div className="flex items-center space-x-2">
-                    <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)}>
-                      <Button variant="ghost" size="sm">Dashboard</Button>
+                    <Link
+                      to="/dashboard"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <Button variant="ghost" size="sm">
+                        Dashboard
+                      </Button>
                     </Link>
                     <Button variant="ghost" size="sm" onClick={handleLogout}>
                       Logout
@@ -150,7 +208,9 @@ const Navbar: React.FC = () => {
                   </div>
                 ) : (
                   <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="automotive" size="sm">Login</Button>
+                    <Button variant="automotive" size="sm">
+                      Login
+                    </Button>
                   </Link>
                 )}
               </div>

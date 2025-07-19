@@ -15,7 +15,7 @@ const Cart: React.FC = () => {
 
   const totalPrice = getTotalPrice();
   const totalItems = getTotalItems();
-  const shippingCost = totalPrice > 100 ? 0 : 9.99;
+  const shippingCost = totalPrice > 1000 ? 0 : 9.99;
   const finalTotal = totalPrice + shippingCost;
 
   if (items.length === 0) {
@@ -161,9 +161,9 @@ const Cart: React.FC = () => {
                       )}
                     </span>
                   </div>
-                  {totalPrice < 100 && (
+                  {totalPrice < 1000 && (
                     <p className="text-xs text-muted-foreground">
-                      Add ${(100 - totalPrice).toFixed(2)} more for free shipping
+                      Add Ksh.{(1000 - totalPrice).toFixed(2)} more for free shipping
                     </p>
                   )}
                 </div>

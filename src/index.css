@@ -129,6 +129,21 @@
   }
 }
 
+/* Light Mode (default) */
+@layer base {
+  :root {
+    --background: 210 20% 98%;
+    --foreground: 210 15% 12%;
+    /* ... other light mode variables ... */
+  }
+
+  .dark {
+    --background: 210 15% 8%;
+    --foreground: 210 20% 95%;
+    /* ... other dark mode variables ... */
+  }
+}
+
 @layer components {
   .gradient-primary {
     background: var(--gradient-primary);

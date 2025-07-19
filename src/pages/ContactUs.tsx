@@ -6,6 +6,10 @@ import {
   Loader2,
   X,
   Bot,
+  Instagram,
+  Twitter,
+  Facebook,
+  MessageCircle,
 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import Navbar from "@/components/layout/Navbar";
@@ -103,20 +107,30 @@ export default function ContactUs() {
         </div>
       </div>
 
-      <div className={`flex flex-col ${showMap ? "md:flex-row" : ""} gap-8 max-w-7xl mx-auto px-4 py-12`}>
+      <div
+        className={`flex flex-col ${
+          showMap ? "md:flex-row" : ""
+        } gap-8 max-w-7xl mx-auto px-4 py-12`}
+      >
         {/* Form Section */}
         <div className={`${showMap ? "md:w-3/5" : "w-full"}`}>
           <section className="text-center mb-10">
             <h1 className="text-4xl font-bold text-primary mb-2">Contact Us</h1>
             <p className="text-muted-foreground max-w-xl mx-auto">
-              We'd love to hear from you! Whether you have a question, feedback, or need help finding the right part, our team is here for you.
+              We'd love to hear from you! Whether you have a question, feedback,
+              or need help finding the right part, our team is here for you.
             </p>
           </section>
 
-          <form onSubmit={handleSubmit} className="space-y-6 bg-muted/30 p-6 rounded-lg shadow-sm">
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-6 bg-muted/30 p-6 rounded-lg shadow-sm"
+          >
             {/* Name */}
             <div className="relative">
-              <label htmlFor="name" className="block font-medium mb-1">Name</label>
+              <label htmlFor="name" className="block font-medium mb-1">
+                Name
+              </label>
               <User className="absolute left-3 top-10 text-muted-foreground w-4 h-4" />
               <input
                 id="name"
@@ -130,7 +144,9 @@ export default function ContactUs() {
 
             {/* Email */}
             <div className="relative">
-              <label htmlFor="email" className="block font-medium mb-1">Email</label>
+              <label htmlFor="email" className="block font-medium mb-1">
+                Email
+              </label>
               <Mail className="absolute left-3 top-10 text-muted-foreground w-4 h-4" />
               <input
                 id="email"
@@ -144,7 +160,9 @@ export default function ContactUs() {
 
             {/* Message */}
             <div className="relative">
-              <label htmlFor="message" className="block font-medium mb-1">Message</label>
+              <label htmlFor="message" className="block font-medium mb-1">
+                Message
+              </label>
               <MessageSquare className="absolute left-3 top-10 text-muted-foreground w-4 h-4" />
               <textarea
                 id="message"
@@ -168,30 +186,76 @@ export default function ContactUs() {
 
           {/* Contact Info */}
           <div className="mt-12 border-t pt-8 space-y-2 text-muted-foreground text-sm">
-            <p>📞 <a href="tel:+254794436286" className="hover:underline text-foreground">+254 700 123 456</a></p>
-            <p>📧 <a href="mailto:abihupita@gmail.com" className="hover:underline text-foreground">support@partshopgo.co.ke</a></p>
+            <p>
+              📞{" "}
+              <a
+                href="tel:+254794436286"
+                className="hover:underline text-foreground"
+              >
+                +254 700 123 456
+              </a>
+            </p>
+            <p>
+              📧{" "}
+              <a
+                href="mailto:abihupita@gmail.com"
+                className="hover:underline text-foreground"
+              >
+                tayarispares.co.ke
+              </a>
+            </p>
             <p>📍 Nairobi, Kenya</p>
           </div>
 
           {/* Social Media */}
           <div className="mt-6 flex justify-center gap-6">
-            {[
-                     { name: "WhatsApp", href: "https://wa.me/254794436286", img: "/icons/whatsapp.jpg" },
-                     { name: "Facebook", href: "https://www.instagram.com/pierr.e095/", img: "/icons/facebook.jpg" },
-                     { name: "Twitter", href: "https://x.com/?lang=en", img: "/icons/twitter.jpg" },
-                     { name: "Instagram", href: "https://www.instagram.com/pierr.e095/", img: "/icons/instagram.jpg" },
-            ].map((social) => (
-              <a
-                key={social.name}
-                href={social.href}
-                target="_blank"
-                rel="noreferrer"
-                className="flex flex-col items-center gap-1"
-              >
-                <img src={social.img} alt={social.name} className="w-8 h-8" />
-                <span className="text-xs text-muted-foreground">{social.name}</span>
-              </a>
-            ))}
+            <a
+              href="https://wa.me/254794436286"
+              target="_blank"
+              rel="noreferrer"
+              className="flex flex-col items-center gap-1 hover:text-primary transition hover:scale-105"
+            >
+              <MessageCircle className="w-5 h-5" />
+              <span className="text-xs text-muted-foreground hover:underline">
+                WhatsApp
+              </span>
+            </a>
+
+            <a
+              href="https://www.instagram.com/pierr.e095/"
+              target="_blank"
+              rel="noreferrer"
+              className="flex flex-col items-center gap-1 hover:text-primary transition hover:scale-105"
+            >
+              <Facebook className="w-5 h-5" />
+              <span className="text-xs text-muted-foreground hover:underline">
+                Facebook
+              </span>
+            </a>
+
+            <a
+              href="https://x.com/?lang=en"
+              target="_blank"
+              rel="noreferrer"
+              className="flex flex-col items-center gap-1 hover:text-primary transition  hover:scale-105"
+            >
+              <Twitter className="w-5 h-5" />
+              <span className="text-xs text-muted-foreground hover:underline">
+                Twitter
+              </span>
+            </a>
+
+            <a
+              href="https://www.instagram.com/pierr.e095/"
+              target="_blank"
+              rel="noreferrer"
+              className="flex flex-col items-center gap-1 hover:text-primary transition hover:scale-105"
+            >
+              <Instagram className="w-5 h-5" />
+              <span className="text-xs text-muted-foreground hover:underline">
+                Instagram
+              </span>
+            </a>
           </div>
         </div>
 
@@ -210,20 +274,16 @@ export default function ContactUs() {
       </div>
 
       {/* Toggle Map Button */}
-            <div className="mt-10 mb-10 flex justify-center">
+      <div className="mt-10 mb-10 flex justify-center">
         <button
-            onClick={() => setShowMap(!showMap)}
-            className="bg-secondary border text-sm px-4 py-2 rounded-md hover:bg-muted transition flex items-center gap-2"
+          onClick={() => setShowMap(!showMap)}
+          className="bg-secondary border text-sm px-4 py-2 rounded-md hover:bg-muted transition flex items-center gap-2"
         >
-            <img
-            src="/icons/map.png"
-            alt="Map Icon"
-            className="w-4 h-4"
-            />
-            {showMap ? "Hide Map" : "Show Map"}
+          <img src="/icons/map.png" alt="Map Icon" className="w-4 h-4" />
+          {showMap ? "Hide Map" : "Show Map"}
         </button>
-          </div>
-          <Footer />
+      </div>
+      <Footer />
     </main>
   );
 }

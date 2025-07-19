@@ -40,3 +40,28 @@
 .read-the-docs {
   color: #888;
 }
+@keyframes typing {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes blink {
+  50% {
+    border-color: transparent;
+  }
+}
+
+.typewriter {
+  overflow: hidden;
+  white-space: nowrap;
+  border-right: 2px solid #4F46E5; /* Tailwind primary color */
+  width: 0;
+  animation:
+    typing 4s steps(38, end) forwards,
+    blink 0.75s step-end infinite;
+}
+

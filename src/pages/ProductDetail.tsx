@@ -89,7 +89,7 @@ const ProductDetail: React.FC = () => {
               </div>
 
               <div className="text-3xl font-bold text-primary mb-6">
-                ${product.price}
+                Ksh.{product.price}
               </div>
             </div>
 
@@ -181,11 +181,11 @@ const ProductDetail: React.FC = () => {
                 <Button
                   onClick={handleAddToCart}
                   disabled={!product.inStock}
-                  className="w-full"
+                  className="w-full text-white"
                   size="lg"
                   variant={product.inStock ? "hero" : "secondary"}
                 >
-                  <ShoppingCart className="mr-2 h-5 w-5" />
+                  <ShoppingCart className="mr-2 h-5 w-5 text-white" />
                   {product.inStock ? `Add to Cart - $${(product.price * quantity).toFixed(2)}` : 'Out of Stock'}
                 </Button>
               </CardContent>
