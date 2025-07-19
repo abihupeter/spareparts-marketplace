@@ -169,27 +169,31 @@ const Index = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-16 bg-background">
-        <div className="container mx-auto px-4">
+      <section className="py-16 bg-background border-t">
+        <div className="container mx-auto px-4 ">
+          {/* Title */}
+          <h2 className="text-4xl font-bold text-center mb-12">Why Choose Us:</h2>
+
+          {/* Feature Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
-              <div className="gradient-primary rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+              <div className="gradient-primary rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 hover:scale-110 transition-transform">
                 <Wrench className="h-8 w-8 text-primary-foreground" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Genuine Parts</h3>
               <p className="text-muted-foreground">All parts are genuine and sourced directly from manufacturers</p>
             </div>
-            
+
             <div className="text-center">
-              <div className="gradient-primary rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <ShoppingCart className="h-8 w-8 text-primary-foreground" />
+              <div className="gradient-primary rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 hover:scale-110 transition-transform">
+                <ShoppingCart className="h-10 w-10 text-primary-foreground" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Fast Delivery</h3>
               <p className="text-muted-foreground">Quick and reliable shipping to get you back on the road</p>
             </div>
-            
+
             <div className="text-center">
-              <div className="gradient-primary rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+              <div className="gradient-primary rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 hover:scale-110 transition-transform">
                 <Star className="h-8 w-8 text-primary-foreground" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Expert Support</h3>
@@ -198,7 +202,6 @@ const Index = () => {
           </div>
         </div>
       </section>
-
       <Footer />
     </div>
   );
