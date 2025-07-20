@@ -1,6 +1,7 @@
-import React, { useState, useMemo, useEffect } from "react"; // Import useEffect
+// src/pages/Shop.tsx
+import React, { useState, useMemo, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Search, Filter, ShoppingCart, Star } from "lucide-react";
+import { Search, Filter, ShoppingCart, Star, Loader2 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Card, CardContent } from "../components/ui/card";
@@ -14,38 +15,43 @@ import {
 } from "../components/ui/select";
 import { Checkbox } from "../components/ui/checkbox";
 import { Label } from "../components/ui/label";
-import { PRODUCTS, CATEGORIES, CAR_BRANDS } from "../data/mockData";
+import { CATEGORIES, CAR_BRANDS } from "../data/mockData"; // Keep these for filter options
 import { useCart } from "../contexts/CartContext";
+import { useProducts } from "../contexts/ProductContext"; // Import useProducts
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 
 const Shop: React.FC = () => {
   const [searchParams] = useSearchParams();
   const { addToCart } = useCart();
+  const {
+    products: allProducts,
+    isLoading: productsLoading,
+    error: productsError,
+  } = useProducts(); // Get products from context
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(
     searchParams.get("category") || "all"
   );
-  const [selectedBrands, setSelectedBrands] = useState<string[]>([]); // Initialize as empty array
+  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
 
-  // Effect to read brand from URL on initial load or URL change
   useEffect(() => {
     const brandParam = searchParams.get("brand");
     if (brandParam) {
-      // Decode the URI component and set as selected brand
       setSelectedBrands([decodeURIComponent(brandParam)]);
     } else {
-      setSelectedBrands([]); // Clear brands if no parameter
+      setSelectedBrands([]);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]); // Re-run effect when searchParams change
+  }, [searchParams]);
 
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 500]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000]); // Increased limit
+
   const [sortBy, setSortBy] = useState("name");
 
   const filteredProducts = useMemo(() => {
-    let filtered = PRODUCTS.filter((product) => {
+    let filtered = allProducts.filter((product) => {
+      // Use allProducts from context
       const matchesSearch =
         product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         product.brand.toLowerCase().includes(searchQuery.toLowerCase());
@@ -61,7 +67,6 @@ const Shop: React.FC = () => {
       return matchesSearch && matchesCategory && matchesBrand && matchesPrice;
     });
 
-    // Sort products
     filtered.sort((a, b) => {
       switch (sortBy) {
         case "price-low":
@@ -75,7 +80,14 @@ const Shop: React.FC = () => {
     });
 
     return filtered;
-  }, [searchQuery, selectedCategory, selectedBrands, priceRange, sortBy]);
+  }, [
+    searchQuery,
+    selectedCategory,
+    selectedBrands,
+    priceRange,
+    sortBy,
+    allProducts,
+  ]); // Add allProducts to dependencies
 
   const handleBrandToggle = (brand: string) => {
     setSelectedBrands((prev) =>
@@ -153,25 +165,18 @@ const Shop: React.FC = () => {
               <div className="space-y-3 mb-6">
                 <Label className="text-sm font-medium">Brand</Label>
                 <div className="space-y-2 max-h-48 overflow-y-auto">
-                  {CAR_BRANDS.map(
-                    (
-                      brand // Iterate through all brands
-                    ) => (
-                      <div key={brand} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={brand}
-                          checked={selectedBrands.includes(brand)} // Check if brand is selected
-                          onCheckedChange={() => handleBrandToggle(brand)}
-                        />
-                        <Label
-                          htmlFor={brand}
-                          className="text-sm cursor-pointer"
-                        >
-                          {brand}
-                        </Label>
-                      </div>
-                    )
-                  )}
+                  {CAR_BRANDS.map((brand) => (
+                    <div key={brand} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={brand}
+                        checked={selectedBrands.includes(brand)}
+                        onCheckedChange={() => handleBrandToggle(brand)}
+                      />
+                      <Label htmlFor={brand} className="text-sm cursor-pointer">
+                        {brand}
+                      </Label>
+                    </div>
+                  ))}
                 </div>
               </div>
 
@@ -186,7 +191,7 @@ const Shop: React.FC = () => {
                     onChange={(e) =>
                       setPriceRange([Number(e.target.value), priceRange[1]])
                     }
-                    className="w-20"
+                    className="w-32" // Increased width
                   />
                   <span>-</span>
                   <Input
@@ -196,7 +201,7 @@ const Shop: React.FC = () => {
                     onChange={(e) =>
                       setPriceRange([priceRange[0], Number(e.target.value)])
                     }
-                    className="w-20"
+                    className="w-32" // Increased width
                   />
                 </div>
               </div>
@@ -205,95 +210,111 @@ const Shop: React.FC = () => {
 
           {/* Products Grid */}
           <div className="lg:col-span-3">
-            <div className="mb-4 flex items-center justify-between">
-              <p className="text-muted-foreground">
-                Showing {filteredProducts.length} products
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {filteredProducts.map((product) => (
-                <Card
-                  key={product.id}
-                  className="group hover:shadow-feature transition-all duration-300"
-                >
-                  <Link to={`/product/${product.id}`}>
-                    <div className="aspect-square relative overflow-hidden rounded-t-lg">
-                      <img
-                        src={product.image}
-                        alt={product.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                      {!product.inStock && (
-                        <Badge
-                          variant="destructive"
-                          className="absolute top-2 right-2"
-                        >
-                          Out of Stock
-                        </Badge>
-                      )}
-                    </div>
-                  </Link>
-
-                  <CardContent className="p-4 space-y-3">
-                    <div>
-                      <Link to={`/product/${product.id}`}>
-                        <h3 className="font-semibold line-clamp-2 hover:text-primary transition-colors">
-                          {product.title}
-                        </h3>
-                      </Link>
-                      <p className="text-sm text-muted-foreground">
-                        {product.brand}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Part #: {product.partNumber}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <span className="text-xl font-bold text-primary">
-                        Ksh.{product.price}
-                      </span>
-                      <div className="flex items-center space-x-1">
-                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        <span className="text-sm text-muted-foreground">
-                          4.8
-                        </span>
-                      </div>
-                    </div>
-
-                    <Button
-                      onClick={() => handleAddToCart(product)}
-                      disabled={!product.inStock}
-                      className="w-full"
-                      variant={product.inStock ? "default" : "secondary"}
-                    >
-                      <ShoppingCart className="mr-2 h-4 w-4" />
-                      {product.inStock ? "Add to Cart" : "Out of Stock"}
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            {filteredProducts.length === 0 && (
+            {productsLoading ? (
               <div className="text-center py-12">
-                <p className="text-muted-foreground text-lg">
-                  No products found matching your criteria.
-                </p>
-                <Button
-                  onClick={() => {
-                    setSearchQuery("");
-                    setSelectedCategory("all");
-                    setSelectedBrands([]);
-                    setPriceRange([0, 500]);
-                  }}
-                  variant="outline"
-                  className="mt-4"
-                >
-                  Clear Filters
-                </Button>
+                <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
+                <p className="text-muted-foreground">Loading products...</p>
               </div>
+            ) : productsError ? (
+              <div className="text-center py-12 text-destructive">
+                <p className="text-lg">Error: {productsError}</p>
+                <p className="text-muted-foreground">
+                  Could not load products.
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="mb-4 flex items-center justify-between">
+                  <p className="text-muted-foreground">
+                    Showing {filteredProducts.length} products
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {filteredProducts.map((product) => (
+                    <Card
+                      key={product.id}
+                      className="group hover:shadow-feature transition-all duration-300"
+                    >
+                      <Link to={`/product/${product.id}`}>
+                        <div className="aspect-square relative overflow-hidden rounded-t-lg">
+                          <img
+                            src={product.image}
+                            alt={product.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                          {!product.inStock && (
+                            <Badge
+                              variant="destructive"
+                              className="absolute top-2 right-2"
+                            >
+                              Out of Stock
+                            </Badge>
+                          )}
+                        </div>
+                      </Link>
+
+                      <CardContent className="p-4 space-y-3">
+                        <div>
+                          <Link to={`/product/${product.id}`}>
+                            <h3 className="font-semibold line-clamp-2 hover:text-primary transition-colors">
+                              {product.title}
+                            </h3>
+                          </Link>
+                          <p className="text-sm text-muted-foreground">
+                            {product.brand}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Part #: {product.partNumber}
+                          </p>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <span className="text-xl font-bold text-primary">
+                            Ksh.{product.price}
+                          </span>
+                          <div className="flex items-center space-x-1">
+                            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                            <span className="text-sm text-muted-foreground">
+                              4.8
+                            </span>
+                          </div>
+                        </div>
+
+                        <Button
+                          onClick={() => handleAddToCart(product)}
+                          disabled={!product.inStock}
+                          className="w-full"
+                          variant={product.inStock ? "default" : "secondary"}
+                        >
+                          <ShoppingCart className="mr-2 h-4 w-4" />
+                          {product.inStock ? "Add to Cart" : "Out of Stock"}
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+
+                {filteredProducts.length === 0 && (
+                  <div className="text-center py-12">
+                    <p className="text-muted-foreground text-lg">
+                      No products found matching your criteria.
+                    </p>
+                    <Button
+                      onClick={() => {
+                        setSearchQuery("");
+                        setSelectedCategory("all");
+                        setSelectedBrands([]);
+                        setPriceRange([0, 10000]); // Reset to new max price
+                      }}
+                      variant="outline"
+                      className="mt-4"
+                    >
+                      Clear Filters
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>

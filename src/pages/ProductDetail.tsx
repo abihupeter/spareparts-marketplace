@@ -1,22 +1,80 @@
-import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, ShoppingCart, Star, Truck, Shield, RefreshCw } from 'lucide-react';
-import { Button } from '../components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { Badge } from '../components/ui/badge';
-import { Separator } from '../components/ui/separator';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
-import { PRODUCTS } from '../data/mockData';
-import { useCart } from '../contexts/CartContext';
-import Navbar from '../components/layout/Navbar';
-import Footer from '../components/layout/Footer';
+// src/pages/ProductDetail.tsx
+import React, { useState, useEffect } from "react";
+import { useParams, Link } from "react-router-dom";
+import {
+  ArrowLeft,
+  ShoppingCart,
+  Star,
+  Truck,
+  Shield,
+  RefreshCw,
+  Loader2,
+} from "lucide-react";
+import { Button } from "../components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
+import { Badge } from "../components/ui/badge";
+import { Separator } from "../components/ui/separator";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../components/ui/table";
+import { useCart } from "../contexts/CartContext";
+import { useProducts } from "../contexts/ProductContext"; // Import useProducts
+import Navbar from "../components/layout/Navbar";
+import Footer from "../components/layout/Footer";
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { addToCart } = useCart();
+  const {
+    products: allProducts,
+    isLoading: productsLoading,
+    error: productsError,
+  } = useProducts(); // Get products from context
   const [quantity, setQuantity] = useState(1);
+  const [product, setProduct] = useState<any>(null); // State to hold the found product
 
-  const product = PRODUCTS.find(p => p.id === Number(id));
+  useEffect(() => {
+    if (allProducts.length > 0) {
+      // Find the product once allProducts are loaded
+      setProduct(allProducts.find((p) => p.id === id)); // Use id directly as it's string from Firestore
+    }
+  }, [id, allProducts]); // Re-run when id or allProducts change
+
+  if (productsLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        <p className="ml-4 text-muted-foreground">Loading product details...</p>
+      </div>
+    );
+  }
+
+  if (productsError) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="container mx-auto px-4 py-16 text-center text-destructive">
+          <h1 className="text-2xl font-bold mb-4">Error Loading Product</h1>
+          <p className="mb-4">{productsError}</p>
+          <Link to="/shop">
+            <Button variant="outline">Back to Shop</Button>
+          </Link>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   if (!product) {
     return (
@@ -40,12 +98,12 @@ const ProductDetail: React.FC = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      
+
       <div className="container mx-auto px-4 py-8">
         {/* Breadcrumb */}
         <div className="mb-6">
-          <Link 
-            to="/shop" 
+          <Link
+            to="/shop"
             className="flex items-center text-muted-foreground hover:text-primary transition-colors"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -77,14 +135,21 @@ const ProductDetail: React.FC = () => {
                 {product.brand}
               </Badge>
               <h1 className="text-3xl font-bold mb-2">{product.title}</h1>
-              <p className="text-muted-foreground mb-4">{product.description}</p>
-              
+              <p className="text-muted-foreground mb-4">
+                {product.description}
+              </p>
+
               <div className="flex items-center space-x-4 mb-4">
                 <div className="flex items-center space-x-1">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                    <Star
+                      key={i}
+                      className="h-5 w-5 fill-yellow-400 text-yellow-400"
+                    />
                   ))}
-                  <span className="text-sm text-muted-foreground ml-2">(4.8) 127 reviews</span>
+                  <span className="text-sm text-muted-foreground ml-2">
+                    (4.8) 127 reviews
+                  </span>
                 </div>
               </div>
 
@@ -109,7 +174,9 @@ const ProductDetail: React.FC = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Category:</span>
-                  <span className="font-medium capitalize">{product.category}</span>
+                  <span className="font-medium capitalize">
+                    {product.category}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Availability:</span>
@@ -124,21 +191,25 @@ const ProductDetail: React.FC = () => {
             <Card>
               <CardHeader>
                 <CardTitle>Vehicle Compatibility</CardTitle>
-                <CardDescription>This part is compatible with the following vehicles:</CardDescription>
+                <CardDescription>
+                  This part is compatible with the following vehicles:
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
-                  {product.compatibility.map((vehicle, index) => (
-                    <Badge key={index} variant="outline">
-                      {vehicle}
-                    </Badge>
-                  ))}
+                  {product.compatibility.map(
+                    (vehicle: string, index: number) => (
+                      <Badge key={index} variant="outline">
+                        {vehicle}
+                      </Badge>
+                    )
+                  )}
                 </div>
               </CardContent>
             </Card>
 
             {/* Technical Specifications */}
-            {product.specs && (
+            {product.specs && Object.keys(product.specs).length > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Technical Specifications</CardTitle>
@@ -149,7 +220,7 @@ const ProductDetail: React.FC = () => {
                       {Object.entries(product.specs).map(([key, value]) => (
                         <TableRow key={key}>
                           <TableCell className="font-medium">{key}</TableCell>
-                          <TableCell>{value}</TableCell>
+                          <TableCell>{value as string}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -172,12 +243,14 @@ const ProductDetail: React.FC = () => {
                     className="border rounded px-3 py-1"
                     disabled={!product.inStock}
                   >
-                    {[1, 2, 3, 4, 5].map(num => (
-                      <option key={num} value={num}>{num}</option>
+                    {[1, 2, 3, 4, 5].map((num) => (
+                      <option key={num} value={num}>
+                        {num}
+                      </option>
                     ))}
                   </select>
                 </div>
-                
+
                 <Button
                   onClick={handleAddToCart}
                   disabled={!product.inStock}
@@ -186,7 +259,11 @@ const ProductDetail: React.FC = () => {
                   variant={product.inStock ? "hero" : "secondary"}
                 >
                   <ShoppingCart className="mr-2 h-5 w-5 text-white" />
-                  {product.inStock ? `Add to Cart - $${(product.price * quantity).toFixed(2)}` : 'Out of Stock'}
+                  {product.inStock
+                    ? `Add to Cart - Ksh.${(product.price * quantity).toFixed(
+                        2
+                      )}`
+                    : "Out of Stock"}
                 </Button>
               </CardContent>
             </Card>
@@ -197,10 +274,12 @@ const ProductDetail: React.FC = () => {
                 <Truck className="h-6 w-6 text-primary" />
                 <div>
                   <p className="font-medium text-sm">Fast Shipping</p>
-                  <p className="text-xs text-muted-foreground">2-3 business days</p>
+                  <p className="text-xs text-muted-foreground">
+                    2-3 business days
+                  </p>
                 </div>
               </div>
-              
+
               <div className="flex items-center space-x-3 p-4 border rounded-lg">
                 <Shield className="h-6 w-6 text-primary" />
                 <div>
@@ -208,7 +287,7 @@ const ProductDetail: React.FC = () => {
                   <p className="text-xs text-muted-foreground">12 months</p>
                 </div>
               </div>
-              
+
               <div className="flex items-center space-x-3 p-4 border rounded-lg">
                 <RefreshCw className="h-6 w-6 text-primary" />
                 <div>

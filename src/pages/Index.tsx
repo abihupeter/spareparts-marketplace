@@ -1,30 +1,50 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { CheckCircle2, Search, Shield, ShoppingCart, Star, Truck, Wrench } from 'lucide-react';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { Badge } from '../components/ui/badge';
-import { CATEGORIES, PRODUCTS } from '../data/mockData';
-import { useCart } from '../contexts/CartContext';
-import Navbar from '../components/layout/Navbar';
-import Footer from '../components/layout/Footer';
+// src/pages/Index.tsx
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import {
+  CheckCircle2,
+  Search,
+  Shield,
+  ShoppingCart,
+  Star,
+  Truck,
+  Wrench,
+  Loader2,
+} from "lucide-react"; // Added Loader2
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
+import { Badge } from "../components/ui/badge";
+import { CATEGORIES } from "../data/mockData";
+import { useProducts } from "../contexts/ProductContext"; // Import useProducts
+import { useCart } from "../contexts/CartContext";
+import Navbar from "../components/layout/Navbar";
+import Footer from "../components/layout/Footer";
 import { useTypingEffect } from "../hooks/useTypingEffect";
 
 const Index = () => {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const { addToCart } = useCart();
+  const {
+    products: allProducts,
+    isLoading: productsLoading,
+    error: productsError,
+  } = useProducts(); // Get products from context
 
-  const featuredProducts = PRODUCTS.slice(0, 4);
-    const mainHeaderText = "Quality Spare Parts for Every Vehicle";
-    // Use the typing effect hook
-    const { displayedText: animatedHeaderText, animationComplete } =
-      useTypingEffect({
-        text: mainHeaderText,
-        speed: 70, 
-        delay: 500, 
-        //loop: true 
-      });
+  const featuredProducts = allProducts.slice(0, 4); // Use allProducts
+  const mainHeaderText = "Quality Spare Parts for Every Vehicle";
+  const { displayedText: animatedHeaderText, animationComplete } =
+    useTypingEffect({
+      text: mainHeaderText,
+      speed: 70,
+      delay: 500,
+    });
   const welcomeMessage =
     "Your one-stop shop for genuine✅ automotive parts⚙️🔩...";
   const { displayedText: animatedWelcomeText, animationComplete: welcomeDone } =
@@ -32,9 +52,8 @@ const Index = () => {
       text: welcomeMessage,
       speed: 150,
       delay: 300,
-      loop: true, // Make it type and delete continuously
+      loop: true,
     });
-
 
   const handleAddToCart = (product: any) => {
     addToCart(product);
@@ -123,60 +142,82 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredProducts.map((product) => (
-              <Card
-                key={product.id}
-                className="group hover:shadow-feature transition-all duration-300"
-              >
-                <div className="aspect-square relative overflow-hidden rounded-t-lg">
-                  <img
-                    src={product.image}
-                    alt={product.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  {!product.inStock && (
-                    <Badge
-                      variant="destructive"
-                      className="absolute top-2 right-2"
-                    >
-                      Out of Stock
-                    </Badge>
-                  )}
-                </div>
-                <CardContent className="p-4 space-y-3">
-                  <div>
-                    <h3 className="font-semibold line-clamp-2">
-                      {product.title}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      {product.brand}
-                    </p>
+          {productsLoading ? (
+            <div className="text-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
+              <p className="text-muted-foreground">
+                Loading featured products...
+              </p>
+            </div>
+          ) : productsError ? (
+            <div className="text-center py-12 text-destructive">
+              <p className="text-lg">Error: {productsError}</p>
+              <p className="text-muted-foreground">
+                Could not load featured products.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {featuredProducts.map((product) => (
+                <Card
+                  key={product.id}
+                  className="group hover:shadow-feature transition-all duration-300"
+                >
+                  <div className="aspect-square relative overflow-hidden rounded-t-lg">
+                    <img
+                      src={product.image}
+                      alt={product.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      onError={(e) => {
+                        e.currentTarget.src =
+                          "https://placehold.co/400x400/cccccc/333333?text=No+Image";
+                      }}
+                    />
+                    {!product.inStock && (
+                      <Badge
+                        variant="destructive"
+                        className="absolute top-2 right-2"
+                      >
+                        Out of Stock
+                      </Badge>
+                    )}
                   </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-2xl font-bold text-primary">
-                      Ksh.{product.price}
-                    </span>
-                    <div className="flex items-center space-x-1">
-                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                      <span className="text-sm text-muted-foreground">4.8</span>
+                  <CardContent className="p-4 space-y-3">
+                    <div>
+                      <h3 className="font-semibold line-clamp-2">
+                        {product.title}
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        {product.brand}
+                      </p>
                     </div>
-                  </div>
 
-                  <Button
-                    onClick={() => handleAddToCart(product)}
-                    disabled={!product.inStock}
-                    className="w-full"
-                    variant={product.inStock ? "default" : "secondary"}
-                  >
-                    <ShoppingCart className="mr-2 h-4 w-4" />
-                    {product.inStock ? "Add to Cart" : "Out of Stock"}
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-2xl font-bold text-primary">
+                        Ksh.{product.price}
+                      </span>
+                      <div className="flex items-center space-x-1">
+                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                        <span className="text-sm text-muted-foreground">
+                          4.8
+                        </span>
+                      </div>
+                    </div>
+
+                    <Button
+                      onClick={() => handleAddToCart(product)}
+                      disabled={!product.inStock}
+                      className="w-full"
+                      variant={product.inStock ? "default" : "secondary"}
+                    >
+                      <ShoppingCart className="mr-2 h-4 w-4" />
+                      {product.inStock ? "Add to Cart" : "Out of Stock"}
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
 
           <div className="text-center mt-12">
             <Link to="/shop">

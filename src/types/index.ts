@@ -1,14 +1,17 @@
 export interface User {
-  id: number;
-  
+  id: string; // Changed to string for Firebase UID
   name: string;
   email: string;
-  password: string;
-  role: 'vendor' | 'customer';
+  password?: string; // Optional for security, not always sent from backend
+  role: "vendor" | "customer";
+  createdAt?: {
+    seconds: number;
+    nanoseconds: number;
+  }; // Firestore Timestamp
 }
 
 export interface Product {
-  id: number;
+  id: string; // Changed to string for Firestore document ID
   title: string;
   description: string;
   price: number;
@@ -18,8 +21,12 @@ export interface Product {
   partNumber: string;
   compatibility: string[];
   inStock: boolean;
-  vendorId: number;
+  vendorId: string; // Changed to string for Firebase UID
   specs?: Record<string, string>;
+  createdAt?: {
+    seconds: number;
+    nanoseconds: number;
+  }; // Firestore Timestamp
 }
 
 export interface CartItem {
@@ -28,17 +35,35 @@ export interface CartItem {
 }
 
 export interface Order {
-  id: number;
-  customerId: number;
-  items: CartItem[];
+  id: string; // Changed to string for Firestore document ID
+  customerId: string; // Changed to string for Firebase UID
+  items: Array<{
+    productId: string; // Changed to string
+    title: string;
+    price: number;
+    quantity: number;
+    image: string;
+  }>;
   total: number;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered';
-  createdAt: string;
+  status: "pending" | "processing" | "shipped" | "delivered";
+  createdAt: {
+    seconds: number;
+    nanoseconds: number;
+  }; // Firestore Timestamp
   shippingAddress: {
     name: string;
     phone: string;
     address: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    notes?: string;
   };
+  paymentMethod?: string; // Add payment method
+  mpesaNumber?: string;
+  cardNumber?: string;
+  cardExpiry?: string;
+  cardCVC?: string;
 }
 
 export interface Category {

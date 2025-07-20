@@ -1,6 +1,7 @@
+// src/pages/SellItem.tsx
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { PlusCircle, Loader2, ArrowLeft, Badge, X } from "lucide-react";
+import { PlusCircle, Loader2, ArrowLeft, X } from "lucide-react";
 import { Button } from "../components/ui/button";
 import {
   Card,
@@ -19,17 +20,18 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import { Checkbox } from "../components/ui/checkbox";
+import { Badge } from "../components/ui/badge"; // Import Badge
 import { useAuth } from "../contexts/AuthContext";
+import { useProducts } from "../contexts/ProductContext"; // Import useProducts
 import { useToast } from "../hooks/use-toast";
-import { CATEGORIES, CAR_BRANDS, addProduct, PRODUCTS } from "../data/mockData";
+import { CATEGORIES, CAR_BRANDS } from "../data/mockData"; // Keep these for dropdown options
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 import { Product } from "../types";
 
-
-
 export default function SellItem() {
   const { user } = useAuth();
+  const { addNewProduct } = useProducts(); // Use addNewProduct from context
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -43,7 +45,7 @@ export default function SellItem() {
     partNumber: "",
     compatibility: [],
     inStock: true,
-    specs: {}, // Initialize as empty object
+    specs: {},
   });
   const [newCompatibility, setNewCompatibility] = useState("");
   const [newSpecKey, setNewSpecKey] = useState("");
@@ -127,7 +129,7 @@ export default function SellItem() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
@@ -151,24 +153,36 @@ export default function SellItem() {
       return;
     }
 
-    // Simulate adding to an in-memory database
-    const newProduct: Product = {
-      ...formData,
-      id: PRODUCTS.length > 0 ? Math.max(...PRODUCTS.map((p) => p.id)) + 1 : 1, // Generate a unique ID
-      vendorId: user.id,
-      inStock: formData.inStock, // Ensure inStock is correctly passed
-    };
+    const success = await addNewProduct(formData); // Call the context function
 
-    addProduct(newProduct); // Add product to mock data
-
-    setTimeout(() => {
-      setLoading(false);
+    if (success) {
       toast({
         title: "Product Added Successfully!",
-        description: `${newProduct.title} is now listed in the shop.`,
+        description: `${formData.title} is now listed in the shop.`,
+      });
+      setFormData({
+        // Reset form after successful submission
+        title: "",
+        description: "",
+        price: 0,
+        image: "",
+        category: "",
+        brand: "",
+        partNumber: "",
+        compatibility: [],
+        inStock: true,
+        specs: {},
       });
       navigate("/shop"); // Redirect to shop page
-    }, 1500);
+    } else {
+      toast({
+        title: "Failed to Add Product",
+        description:
+          "There was an error adding your product. Please try again.",
+        variant: "destructive",
+      });
+    }
+    setLoading(false);
   };
 
   return (
@@ -237,7 +251,7 @@ export default function SellItem() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="price">Price ($)</Label>
+                  <Label htmlFor="price">Price (Ksh.)</Label>
                   <Input
                     id="price"
                     type="number"
@@ -345,10 +359,7 @@ export default function SellItem() {
                 </div>
                 <div className="grid grid-cols-2 gap-2 mt-2">
                   {Object.entries(formData.specs || {}).map(([key, value]) => (
-                    <Badge
-                      key={key}
-                      className="justify-between"
-                    >
+                    <Badge key={key} className="justify-between">
                       {key}: {value}
                       <Button
                         type="button"

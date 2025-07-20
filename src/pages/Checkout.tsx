@@ -1,3 +1,5 @@
+// src/pages/Checkout.tsx
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -8,7 +10,8 @@ import {
   User,
   Wallet,
   DollarSign,
-} from "lucide-react"; // Added Wallet and DollarSign icons
+  Loader2,
+} from "lucide-react";
 import { Button } from "../components/ui/button";
 import {
   Card,
@@ -21,12 +24,13 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Textarea } from "../components/ui/textarea";
 import { Separator } from "../components/ui/separator";
-import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group"; // Import RadioGroup components
+import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group";
 import { useCart } from "../contexts/CartContext";
 import { useAuth } from "../contexts/AuthContext";
 import { useToast } from "../hooks/use-toast";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
+import { getAuth } from "firebase/auth"; // Import getAuth
 
 const Checkout: React.FC = () => {
   const { items, getTotalPrice, clearCart } = useCart();
@@ -45,7 +49,7 @@ const Checkout: React.FC = () => {
   });
 
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
-    useState<string>(""); // State for selected payment method
+    useState<string>("");
   const [mpesaNumber, setMpesaNumber] = useState("");
   const [cardNumber, setCardNumber] = useState("");
   const [cardExpiry, setCardExpiry] = useState("");
@@ -57,6 +61,8 @@ const Checkout: React.FC = () => {
   const shippingCost = totalPrice > 1000 ? 0 : 9.99;
   const finalTotal = totalPrice + shippingCost;
 
+  const API_BASE_URL = "http://localhost:5000/api";
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -67,6 +73,20 @@ const Checkout: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessing(true);
+
+    const auth = getAuth(); // Get auth instance
+    const currentUser = auth.currentUser; // Get current Firebase User
+
+    if (!currentUser) {
+      // Check for Firebase User
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to place an order.",
+        variant: "destructive",
+      });
+      setIsProcessing(false);
+      return;
+    }
 
     // Basic validation for payment method
     if (!selectedPaymentMethod) {
@@ -102,8 +122,45 @@ const Checkout: React.FC = () => {
       }
     }
 
-    // Simulate order processing
-    setTimeout(() => {
+    try {
+      const idToken = await currentUser.getIdToken(); // Call getIdToken on currentUser
+
+      const orderData = {
+        items: items,
+        total: finalTotal,
+        shippingAddress: {
+          name: formData.name,
+          phone: formData.phone,
+          address: formData.address,
+          city: formData.city,
+          state: formData.state,
+          zipCode: formData.zipCode,
+          notes: formData.notes,
+        },
+        paymentMethod: selectedPaymentMethod,
+        mpesaNumber:
+          selectedPaymentMethod === "mpesa" ? mpesaNumber : undefined,
+        cardNumber: selectedPaymentMethod === "card" ? cardNumber : undefined,
+        cardExpiry: selectedPaymentMethod === "card" ? cardExpiry : undefined,
+        cardCVC: selectedPaymentMethod === "card" ? cardCVC : undefined,
+      };
+
+      const response = await fetch(`${API_BASE_URL}/orders`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify(orderData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message || `HTTP error! status: ${response.status}`
+        );
+      }
+
       const orderId = Math.random().toString(36).substr(2, 9).toUpperCase();
 
       toast({
@@ -113,8 +170,18 @@ const Checkout: React.FC = () => {
 
       clearCart();
       navigate("/dashboard");
+    } catch (error: any) {
+      console.error("Error placing order:", error);
+      toast({
+        title: "Order Placement Failed",
+        description:
+          error.message ||
+          "There was an error placing your order. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
       setIsProcessing(false);
-    }, 2000);
+    }
   };
 
   if (items.length === 0) {
@@ -123,11 +190,13 @@ const Checkout: React.FC = () => {
   }
 
   if (!user) {
+    // This `user` comes from AuthContext, still valid for general user info
     navigate("/login");
     return null;
   }
 
   return (
+    // ... (rest of the Checkout component remains the same)
     <div className="min-h-screen bg-background">
       <Navbar />
 
@@ -389,6 +458,10 @@ const Checkout: React.FC = () => {
                           src={item.product.image}
                           alt={item.product.title}
                           className="w-12 h-12 object-cover rounded"
+                          onError={(e) => {
+                            e.currentTarget.src =
+                              "https://placehold.co/400x400/cccccc/333333?text=No+Image";
+                          }}
                         />
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-sm truncate">
@@ -449,7 +522,14 @@ const Checkout: React.FC = () => {
                     size="lg"
                     variant="hero"
                   >
-                    {isProcessing ? "Processing Order..." : "Place Order"}
+                    {isProcessing ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Processing Order...
+                      </>
+                    ) : (
+                      "Place Order"
+                    )}
                   </Button>
 
                   {/* Order Features */}

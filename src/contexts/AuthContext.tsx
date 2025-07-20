@@ -1,13 +1,34 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User } from '../types';
-import { USERS } from '../data/mockData';
+// src/contexts/AuthContext.tsx
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
+import { User } from "../types";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  updateProfile,
+} from "firebase/auth";
+import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore";
+import { toast } from "../hooks/use-toast"; // Assuming you have a useToast hook
 
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   isLoading: boolean;
-  register: (fullName: string, email: string, password: string, role: string) => Promise<boolean>;
+  register: (
+    fullName: string,
+    email: string,
+    password: string,
+    role: "vendor" | "customer"
+  ) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -15,7 +36,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
@@ -27,65 +48,163 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [localUsers, setLocalUsers] = useState<User[]>([]);
+
+  const auth = getAuth(); // Get Firebase Auth instance
+  const db = getFirestore(); // Get Firestore instance
+
+  const API_BASE_URL = "http://localhost:5000/api"; // Ensure this matches your backend URL
 
   useEffect(() => {
-    // Load current user
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        // User is signed in, fetch their custom data from Firestore
+        try {
+          const userDocRef = doc(db, "users", firebaseUser.uid);
+          const userDocSnap = await getDoc(userDocRef);
 
-    // Load any locally registered users
-    const storedLocalUsers = localStorage.getItem('registeredUsers');
-    if (storedLocalUsers) {
-      setLocalUsers(JSON.parse(storedLocalUsers));
-    }
+          if (userDocSnap.exists()) {
+            const userData = userDocSnap.data() as User;
+            setUser({
+              ...userData,
+              id: firebaseUser.uid, // Ensure ID matches UID
+              email: firebaseUser.email || userData.email, // Update email if needed
+              name: firebaseUser.displayName || userData.name, // Update name if needed
+            });
+          } else {
+            // If user exists in Auth but not Firestore (shouldn't happen with register flow)
+            console.warn("User found in Firebase Auth but not in Firestore.");
+            setUser({
+              id: firebaseUser.uid,
+              name: firebaseUser.displayName || "User",
+              email: firebaseUser.email || "",
+              password: "", // Password is not stored here for security
+              role: "customer", // Default role if not found in Firestore
+            });
+          }
+        } catch (error) {
+          console.error("Error fetching user data from Firestore:", error);
+          setUser(null); // Clear user if data fetch fails
+        }
+      } else {
+        // User is signed out
+        setUser(null);
+      }
+      setIsLoading(false);
+    });
 
-    setIsLoading(false);
-  }, []);
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, [auth, db]);
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    const allUsers = [...USERS, ...localUsers];
-    const foundUser = allUsers.find(u => u.email === email && u.password === password);
-
-    if (foundUser) {
-      setUser(foundUser);
-      localStorage.setItem('user', JSON.stringify(foundUser));
+    setIsLoading(true);
+    try {
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      // onAuthStateChanged listener will handle setting the user state
+      toast({ title: "Login Successful", description: "Welcome back!" });
       return true;
+    } catch (error: any) {
+      console.error("Login failed:", error);
+      let errorMessage = "Login failed. Please check your credentials.";
+      if (
+        error.code === "auth/user-not-found" ||
+        error.code === "auth/wrong-password"
+      ) {
+        errorMessage = "Invalid email or password.";
+      } else if (error.code === "auth/invalid-email") {
+        errorMessage = "Invalid email format.";
+      }
+      toast({
+        title: "Login Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      return false;
+    } finally {
+      setIsLoading(false);
     }
-
-    return false;
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
+  const logout = async () => {
+    setIsLoading(true);
+    try {
+      await signOut(auth);
+      toast({ title: "Logged Out", description: "See you next time!" });
+    } catch (error: any) {
+      console.error("Logout failed:", error);
+      toast({
+        title: "Logout Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleRegister = async (
-    
+  const register = async (
     fullName: string,
     email: string,
     password: string,
-    role:  'vendor' | 'customer'
+    role: "vendor" | "customer"
   ): Promise<boolean> => {
-    const allUsers = [...USERS, ...localUsers];
-    const existingUser = allUsers.find(u => u.email === email);
-    if (existingUser) return false;
+    setIsLoading(true);
+    try {
+      // Create user in Firebase Authentication
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const firebaseUser = userCredential.user;
 
-    const newUser: User = {
-      id: Date.now(),
-      name: fullName,
-      email,
-      password,
-      role,
-    };
+      // Update display name in Firebase Auth
+      await updateProfile(firebaseUser, { displayName: fullName });
 
-    const updatedUsers = [...localUsers, newUser];
-    setLocalUsers(updatedUsers);
-    localStorage.setItem('registeredUsers', JSON.stringify(updatedUsers));
-    return true;
+      // Send user data to your backend to store in Firestore
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, fullName, role }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message ||
+            `Backend registration failed with status: ${response.status}`
+        );
+      }
+
+      // onAuthStateChanged listener will handle setting the user state
+      toast({
+        title: "Registration Successful",
+        description: "You can now sign in.",
+      });
+      return true;
+    } catch (error: any) {
+      console.error("Registration failed:", error);
+      let errorMessage = "Registration failed. Please try again.";
+      if (error.code === "auth/email-already-in-use") {
+        errorMessage = "This email is already registered.";
+      } else if (error.code === "auth/weak-password") {
+        errorMessage = "Password is too weak.";
+      } else if (error.code === "auth/invalid-email") {
+        errorMessage = "Invalid email format.";
+      }
+      toast({
+        title: "Registration Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const value: AuthContextType = {
@@ -93,7 +212,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     login,
     logout,
     isLoading,
-    register: handleRegister, // ✅ mapped to avoid name conflict
+    register,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
