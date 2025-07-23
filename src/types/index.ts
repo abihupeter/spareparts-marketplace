@@ -1,13 +1,17 @@
+// src/types/index.ts
 export interface User {
   id: string; // Changed to string for Firebase UID
   name: string;
   email: string;
   password?: string; // Optional for security, not always sent from backend
   role: "vendor" | "customer";
+  isAdmin?: boolean; // Added for admin status
   createdAt?: {
     seconds: number;
     nanoseconds: number;
   }; // Firestore Timestamp
+  // REMOVE THE LINE BELOW IF IT EXISTS IN YOUR FILE:
+  // getIdToken(): unknown;
 }
 
 export interface Product {
