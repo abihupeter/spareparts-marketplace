@@ -45,7 +45,7 @@ const Shop: React.FC = () => {
     }
   }, [searchParams]);
 
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000]); // Increased limit
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000000]); 
 
   const [sortBy, setSortBy] = useState("name");
 
@@ -305,7 +305,7 @@ const Shop: React.FC = () => {
                         setSearchQuery("");
                         setSelectedCategory("all");
                         setSelectedBrands([]);
-                        setPriceRange([0, 10000]); // Reset to new max price
+                        setPriceRange([0, 1000000]);
                       }}
                       variant="outline"
                       className="mt-4"
