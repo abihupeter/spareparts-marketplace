@@ -1,4 +1,3 @@
-// src/contexts/AuthContext.tsx
 import React, {
   createContext,
   useContext,
@@ -16,7 +15,7 @@ import {
   updateProfile,
 } from "firebase/auth";
 import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore";
-import { toast } from "../hooks/use-toast"; // Assuming you have a useToast hook
+import { toast } from "../hooks/use-toast";
 
 interface AuthContextType {
   user: User | null;
@@ -49,52 +48,59 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const auth = getAuth(); // Get Firebase Auth instance
-  const db = getFirestore(); // Get Firestore instance
+  const auth = getAuth();
+  const db = getFirestore();
 
-  const API_BASE_URL = "http://localhost:5000/api"; // Ensure this matches your backend URL
+  const API_BASE_URL = "http://localhost:5000/api";
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        // User is signed in, fetch their custom data from Firestore
+        // User is signed in, retrieve their role from local storage
+        const storedRole = localStorage.getItem(
+          `userRole_${firebaseUser.uid}`
+        ) as "vendor" | "customer" | null;
+
+        // Fetch user data from Firestore (excluding role)
         try {
           const userDocRef = doc(db, "users", firebaseUser.uid);
           const userDocSnap = await getDoc(userDocRef);
 
           if (userDocSnap.exists()) {
-            const userData = userDocSnap.data() as User;
+            const userData = userDocSnap.data(); // Fetch data, but role will not be read from here
             setUser({
-              ...userData,
-              id: firebaseUser.uid, // Ensure ID matches UID
-              email: firebaseUser.email || userData.email, // Update email if needed
-              name: firebaseUser.displayName || userData.name, // Update name if needed
+              id: firebaseUser.uid,
+              name: firebaseUser.displayName || userData.name || "User",
+              email: firebaseUser.email || userData.email || "",
+              role: storedRole || "customer", // Prioritize stored role, default to customer
             });
           } else {
-            // If user exists in Auth but not Firestore (shouldn't happen with register flow)
             console.warn("User found in Firebase Auth but not in Firestore.");
             setUser({
               id: firebaseUser.uid,
               name: firebaseUser.displayName || "User",
               email: firebaseUser.email || "",
-              password: "", // Password is not stored here for security
-              role: "customer", // Default role if not found in Firestore
+              password: "",
+              role: storedRole || "customer", // Prioritize stored role, default to customer
             });
           }
         } catch (error) {
           console.error("Error fetching user data from Firestore:", error);
-          setUser(null); // Clear user if data fetch fails
+          setUser(null);
         }
       } else {
-        // User is signed out
+        // User is signed out, clear local storage role
+        const uid = user?.id; // Get UID before clearing user state
         setUser(null);
+        if (uid) {
+          localStorage.removeItem(`userRole_${uid}`);
+        }
       }
       setIsLoading(false);
     });
 
-    // Cleanup subscription on unmount
     return () => unsubscribe();
-  }, [auth, db]);
+  }, [auth, db, user?.id]); // Added user.id to dependencies to track changes for local storage key
 
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
@@ -104,7 +110,34 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         email,
         password
       );
-      // onAuthStateChanged listener will handle setting the user state
+      const firebaseUser = userCredential.user;
+
+      // Upon successful login, re-fetch the user's role if it exists locally
+      const storedRole = localStorage.getItem(
+        `userRole_${firebaseUser.uid}`
+      ) as "vendor" | "customer" | null;
+      if (storedRole) {
+        // If role is stored locally, update the user state with it
+        setUser((prevUser) => ({
+          ...prevUser!, // Assume prevUser exists because firebaseUser is available
+          id: firebaseUser.uid,
+          name: firebaseUser.displayName || prevUser?.name || "User",
+          email: firebaseUser.email || prevUser?.email || "",
+          role: storedRole,
+        }));
+      } else {
+        // If no role is found in local storage, default to 'customer'
+        // In a real app, this would be a problem if role is not returned by backend or stored.
+        localStorage.setItem(`userRole_${firebaseUser.uid}`, "customer");
+        setUser((prevUser) => ({
+          ...prevUser!,
+          id: firebaseUser.uid,
+          name: firebaseUser.displayName || prevUser?.name || "User",
+          email: firebaseUser.email || prevUser?.email || "",
+          role: "customer",
+        }));
+      }
+
       toast({ title: "Login Successful", description: "Welcome back!" });
       return true;
     } catch (error: any) {
@@ -132,7 +165,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = async () => {
     setIsLoading(true);
     try {
+      if (user?.id) {
+        localStorage.removeItem(`userRole_${user.id}`); // Clear specific user's role
+      }
       await signOut(auth);
+      setUser(null); // Ensure user state is cleared
       toast({ title: "Logged Out", description: "See you next time!" });
     } catch (error: any) {
       console.error("Logout failed:", error);
@@ -154,7 +191,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   ): Promise<boolean> => {
     setIsLoading(true);
     try {
-      // Create user in Firebase Authentication
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
@@ -162,14 +198,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       );
       const firebaseUser = userCredential.user;
 
-      // Update display name in Firebase Auth
       await updateProfile(firebaseUser, { displayName: fullName });
 
-      // Send user data to your backend to store in Firestore
+      // Store role locally in localStorage
+      localStorage.setItem(`userRole_${firebaseUser.uid}`, role);
+
+      // Send minimal user data to your backend (role is NOT included here for Firestore storage)
       const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, fullName, role }),
+        body: JSON.stringify({ email, password, fullName }), // Role is removed
       });
 
       if (!response.ok) {
@@ -180,7 +218,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         );
       }
 
-      // onAuthStateChanged listener will handle setting the user state
+      // Update local user state with the role from local storage
+      setUser({
+        id: firebaseUser.uid,
+        name: fullName,
+        email: firebaseUser.email || email,
+        role: role,
+      });
+
       toast({
         title: "Registration Successful",
         description: "You can now sign in.",

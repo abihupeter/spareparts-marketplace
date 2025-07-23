@@ -9,7 +9,6 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 // Initialize Firebase Admin SDK
-// Make sure your serviceAccountKey.json is in the 'backend' folder
 const serviceAccount = require("./serviceAccountKey.json");
 
 admin.initializeApp({
@@ -17,14 +16,14 @@ admin.initializeApp({
 });
 
 const db = admin.firestore();
-const auth = admin.auth(); // Initialize Firebase Auth
+const auth = admin.auth();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors()); // Allows cross-origin requests from your frontend
-app.use(express.json()); // Parses JSON request bodies
+app.use(cors());
+app.use(express.json());
 
 // --- API Routes ---
 
@@ -40,7 +39,7 @@ const verifyToken = async (req, res, next) => {
 
   try {
     const decodedToken = await auth.verifyIdToken(idToken);
-    req.user = decodedToken; // Attach decoded user info to request
+    req.user = decodedToken;
     next();
   } catch (error) {
     console.error("Error verifying Firebase ID token:", error);
@@ -57,16 +56,16 @@ app.get("/", (req, res) => {
 
 // Register User
 app.post("/api/auth/register", async (req, res) => {
-  const { email, password, fullName, role } = req.body;
+  const { email, password, fullName } = req.body; // 'role' is removed from destructuring
 
-  console.log(`Attempting to register user: ${email} with role: ${role}`);
+  console.log(`Attempting to register user: ${email}`);
 
-  if (!email || !password || !fullName || !role) {
+  if (!email || !password || !fullName) {
+    // 'role' check removed
     return res.status(400).json({ message: "Missing required fields." });
   }
 
   try {
-    // Create user in Firebase Authentication
     const userRecord = await auth.createUser({
       email,
       password,
@@ -75,12 +74,12 @@ app.post("/api/auth/register", async (req, res) => {
 
     console.log(`User created in Firebase Auth: ${userRecord.uid}`);
 
-    // Save additional user data to Firestore
+    // Save additional user data to Firestore, EXCLUDING 'role'
     await db.collection("users").doc(userRecord.uid).set({
-      id: userRecord.uid, // Use UID as Firestore document ID
+      id: userRecord.uid,
       email,
       name: fullName,
-      role,
+      // role: role, // <-- This line is removed
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
@@ -111,12 +110,7 @@ app.post("/api/auth/register", async (req, res) => {
 });
 
 // Login User (simplified - frontend will handle Firebase Auth sign-in directly)
-// This endpoint is more for demonstrating how a backend might interact with auth
-// or for custom token generation if needed. For this app, frontend handles login.
 app.post("/api/auth/login", async (req, res) => {
-  // In a real app, you'd typically use Firebase Client SDK for login
-  // and then send the ID token to the backend for verification.
-  // This is a placeholder to show a backend auth route.
   res.status(200).json({
     message: "Login handled by client SDK. Backend can verify token if sent.",
   });
@@ -130,7 +124,7 @@ app.get("/api/products", async (req, res) => {
     const productsRef = db.collection("products");
     const snapshot = await productsRef.get();
     const products = snapshot.docs.map((doc) => ({
-      id: doc.id, // Use Firestore document ID as product ID
+      id: doc.id,
       ...doc.data(),
     }));
     res.status(200).json(products);
@@ -174,15 +168,15 @@ app.post("/api/products", verifyToken, async (req, res) => {
     const newProductRef = await db.collection("products").add({
       title,
       description,
-      price: parseFloat(price), // Ensure price is a number
+      price: parseFloat(price),
       image,
       category,
       brand,
       partNumber,
       compatibility: compatibility || [],
-      inStock: typeof inStock === "boolean" ? inStock : true, // Default to true if not provided
+      inStock: typeof inStock === "boolean" ? inStock : true,
       specs: specs || {},
-      vendorId, // Store the ID of the vendor who added the product
+      vendorId,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 

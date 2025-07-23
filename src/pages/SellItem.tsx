@@ -20,18 +20,18 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import { Checkbox } from "../components/ui/checkbox";
-import { Badge } from "../components/ui/badge"; // Import Badge
+import { Badge } from "../components/ui/badge";
 import { useAuth } from "../contexts/AuthContext";
-import { useProducts } from "../contexts/ProductContext"; // Import useProducts
+import { useProducts } from "../contexts/ProductContext";
 import { useToast } from "../hooks/use-toast";
-import { CATEGORIES, CAR_BRANDS } from "../data/mockData"; // Keep these for dropdown options
+import { CATEGORIES, CAR_BRANDS } from "../data/mockData";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 import { Product } from "../types";
 
 export default function SellItem() {
   const { user } = useAuth();
-  const { addNewProduct } = useProducts(); // Use addNewProduct from context
+  const { addNewProduct } = useProducts();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -52,24 +52,25 @@ export default function SellItem() {
   const [newSpecValue, setNewSpecValue] = useState("");
 
   // Redirect if not logged in or not a vendor
-  if (!user) {
-    navigate("/login");
-    toast({
-      title: "Authentication Required",
-      description: "Please log in to sell items.",
-      variant: "destructive",
-    });
-    return null;
-  }
-  if (user.role !== "vendor") {
-    navigate("/dashboard");
-    toast({
-      title: "Unauthorized Access",
-      description: "Only sellers can add new items.",
-      variant: "destructive",
-    });
-    return null;
-  }
+  // The following checks are commented out to allow anyone to access the page.
+  // if (!user) {
+  //   navigate("/login");
+  //   toast({
+  //     title: "Authentication Required",
+  //     description: "Please log in to sell items.",
+  //     variant: "destructive",
+  //   });
+  //   return null;
+  // }
+  // if (user.role !== "vendor") {
+  //   navigate("/dashboard");
+  //   toast({
+  //     title: "Unauthorized Access",
+  //     description: "Only sellers can add new items.",
+  //     variant: "destructive",
+  //   });
+  //   return null;
+  // }
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -153,7 +154,7 @@ export default function SellItem() {
       return;
     }
 
-    const success = await addNewProduct(formData); // Call the context function
+    const success = await addNewProduct(formData);
 
     if (success) {
       toast({
@@ -161,7 +162,6 @@ export default function SellItem() {
         description: `${formData.title} is now listed in the shop.`,
       });
       setFormData({
-        // Reset form after successful submission
         title: "",
         description: "",
         price: 0,
@@ -173,7 +173,7 @@ export default function SellItem() {
         inStock: true,
         specs: {},
       });
-      navigate("/shop"); // Redirect to shop page
+      navigate("/shop");
     } else {
       toast({
         title: "Failed to Add Product",
