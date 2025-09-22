@@ -4,7 +4,7 @@ export interface User {
   name: string;
   email: string;
   password?: string; // Optional for security, not always sent from backend
-  role: "vendor" | "customer";
+  role: "vendor" | "customer" | "admin"; // Changed to union type for clarity
   isAdmin?: boolean; // Added for admin status
   createdAt?: {
     seconds: number;

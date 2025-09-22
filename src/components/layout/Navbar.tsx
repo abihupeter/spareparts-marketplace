@@ -46,6 +46,7 @@ useEffect(() => {
     setShowNavbar(true);
     return;
   }
+  
 
   const handleScroll = () => {
     setShowNavbar(window.scrollY > 80);

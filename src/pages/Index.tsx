@@ -73,7 +73,17 @@ const Index = () => {
         </div>
 
         {/* Typing Welcome Right */}
-        <div className="text-right text-primary text-xl md:text-2xl font-semibold whitespace-nowrap">
+        <div
+          className={`
+    text-primary font-semibold 
+    text-center md:text-right 
+    text-base sm:text-lg md:text-2xl 
+    transition-all duration-1000 ease-in-out
+    transform 
+    sm:scale-100 sm:opacity-100
+    scale-75 
+  `}
+        >
           {animatedWelcomeText}
           {!welcomeDone && <span className="animate-pulse">|</span>}
         </div>

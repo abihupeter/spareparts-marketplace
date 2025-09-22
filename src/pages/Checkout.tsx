@@ -30,7 +30,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useToast } from "../hooks/use-toast";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
-import { getAuth } from "firebase/auth"; // Import getAuth
+import { getAuth } from "firebase/auth";
 
 const Checkout: React.FC = () => {
   const { items, getTotalPrice, clearCart } = useCart();
@@ -40,7 +40,7 @@ const Checkout: React.FC = () => {
 
   const [formData, setFormData] = useState({
     name: user?.name || "",
-    phone: "",
+    phone: "", // This is the shipping phone number
     address: "",
     city: "",
     state: "",
@@ -50,7 +50,7 @@ const Checkout: React.FC = () => {
 
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
     useState<string>("");
-  const [mpesaNumber, setMpesaNumber] = useState("");
+  const [mpesaNumber, setMpesaNumber] = useState(""); // This is the M-Pesa phone number
   const [cardNumber, setCardNumber] = useState("");
   const [cardExpiry, setCardExpiry] = useState("");
   const [cardCVC, setCardCVC] = useState("");
@@ -58,7 +58,7 @@ const Checkout: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
 
   const totalPrice = getTotalPrice();
-  const shippingCost = totalPrice > 1000 ? 0 : 9.99;
+  const shippingCost = totalPrice > 1000 ? 0 : 300;
   const finalTotal = totalPrice + shippingCost;
 
   const API_BASE_URL = "http://localhost:5000/api";
@@ -70,15 +70,64 @@ const Checkout: React.FC = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    const cleanedValue = value.replace(/\D/g, ""); // Remove non-digits
+    if (cleanedValue.length <= 10) {
+      setFormData((prev) => ({ ...prev, [name]: cleanedValue }));
+    }
+  };
+
+  const handleMpesaNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    const cleanedValue = value.replace(/\D/g, ""); // Remove non-digits
+    if (cleanedValue.length <= 10) {
+      setMpesaNumber(cleanedValue);
+    }
+  };
+
+  // --- START: New Card Input Handlers ---
+  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/\D/g, ""); // Remove non-digits
+    value = value.substring(0, 16); // Limit to 16 digits
+    // Add spaces every 4 digits
+    const formattedValue = value.match(/.{1,4}/g)?.join(" ") || "";
+    setCardNumber(formattedValue);
+  };
+
+  const handleCardExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/\D/g, ""); // Remove non-digits
+    if (value.length > 4) {
+      // Max 4 digits for MMYY
+      value = value.substring(0, 4);
+    }
+
+    if (value.length > 2) {
+      // Automatically add '/' after MM
+      setCardExpiry(`${value.substring(0, 2)}/${value.substring(2, 4)}`);
+    } else {
+      setCardExpiry(value);
+    }
+  };
+
+  const handleCardCVCChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, ""); // Remove non-digits
+    if (value.length <= 3) {
+      // Limit to 3 digits as requested (common for Visa/MC)
+      setCardCVC(value);
+    }
+    // If you need 4 for Amex, change to `value.length <= 4`
+  };
+  // --- END: New Card Input Handlers ---
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessing(true);
 
-    const auth = getAuth(); // Get auth instance
-    const currentUser = auth.currentUser; // Get current Firebase User
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
 
     if (!currentUser) {
-      // Check for Firebase User
       toast({
         title: "Authentication Required",
         description: "Please log in to place an order.",
@@ -88,7 +137,6 @@ const Checkout: React.FC = () => {
       return;
     }
 
-    // Basic validation for payment method
     if (!selectedPaymentMethod) {
       toast({
         title: "Payment Method Required",
@@ -99,22 +147,39 @@ const Checkout: React.FC = () => {
       return;
     }
 
-    // Additional validation based on selected method (simplified for demo)
-    if (selectedPaymentMethod === "mpesa" && !mpesaNumber.trim()) {
-      toast({
-        title: "M-Pesa Number Required",
-        description: "Please enter your M-Pesa number.",
-        variant: "destructive",
-      });
-      setIsProcessing(false);
-      return;
+    if (selectedPaymentMethod === "mpesa") {
+      if (!mpesaNumber.trim()) {
+        toast({
+          title: "M-Pesa Number Required",
+          description: "Please enter your M-Pesa number.",
+          variant: "destructive",
+        });
+        setIsProcessing(false);
+        return;
+      }
+      if (!/^07\d{8}$/.test(mpesaNumber)) {
+        toast({
+          title: "Invalid M-Pesa Number",
+          description:
+            "Please enter a valid Kenyan M-Pesa number (e.g., 0712345678).",
+          variant: "destructive",
+        });
+        setIsProcessing(false);
+        return;
+      }
     }
 
     if (selectedPaymentMethod === "card") {
-      if (!cardNumber.trim() || !cardExpiry.trim() || !cardCVC.trim()) {
+      // Validate formatted lengths and patterns
+      if (
+        cardNumber.replace(/\s/g, "").length !== 16 ||
+        !cardExpiry.match(/^\d{2}\/\d{2}$/) ||
+        cardCVC.length !== 3
+      ) {
         toast({
-          title: "Card Details Required",
-          description: "Please fill in all card details.",
+          title: "Invalid Card Details",
+          description:
+            "Please ensure card number is 16 digits, expiry is MM/YY, and CVC is 3 digits.",
           variant: "destructive",
         });
         setIsProcessing(false);
@@ -123,60 +188,98 @@ const Checkout: React.FC = () => {
     }
 
     try {
-      const idToken = await currentUser.getIdToken(); // Call getIdToken on currentUser
+      const idToken = await currentUser.getIdToken();
 
-      const orderData = {
-        items: items,
-        total: finalTotal,
-        shippingAddress: {
-          name: formData.name,
-          phone: formData.phone,
-          address: formData.address,
-          city: formData.city,
-          state: formData.state,
-          zipCode: formData.zipCode,
-          notes: formData.notes,
-        },
-        paymentMethod: selectedPaymentMethod,
-        mpesaNumber:
-          selectedPaymentMethod === "mpesa" ? mpesaNumber : undefined,
-        cardNumber: selectedPaymentMethod === "card" ? cardNumber : undefined,
-        cardExpiry: selectedPaymentMethod === "card" ? cardExpiry : undefined,
-        cardCVC: selectedPaymentMethod === "card" ? cardCVC : undefined,
-      };
-
-      const response = await fetch(`${API_BASE_URL}/orders`, {
+      const orderPlacementResponse = await fetch(`${API_BASE_URL}/orders`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${idToken}`,
         },
-        body: JSON.stringify(orderData),
+        body: JSON.stringify({
+          items: items,
+          total: finalTotal,
+          shippingAddress: {
+            name: formData.name,
+            phone: formData.phone,
+            address: formData.address,
+            city: formData.city,
+            state: formData.state,
+            zipCode: formData.zipCode,
+            notes: formData.notes,
+          },
+          paymentMethod: selectedPaymentMethod,
+        }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
+      if (!orderPlacementResponse.ok) {
+        const errorData = await orderPlacementResponse.json();
         throw new Error(
-          errorData.message || `HTTP error! status: ${response.status}`
+          errorData.message ||
+            `HTTP error! status: ${orderPlacementResponse.status}`
         );
       }
 
-      const orderId = Math.random().toString(36).substr(2, 9).toUpperCase();
+      const orderResult = await orderPlacementResponse.json();
+      const orderId = orderResult.id;
 
-      toast({
-        title: "Order Placed Successfully!",
-        description: `Your order #${orderId} has been confirmed. Payment method: ${selectedPaymentMethod}. You'll receive a confirmation email shortly.`,
-      });
+      if (selectedPaymentMethod === "mpesa") {
+        const formattedMpesaNumber = `254${mpesaNumber.substring(1)}`;
 
-      clearCart();
-      navigate("/dashboard");
+        const mpesaResponse = await fetch(`${API_BASE_URL}/mpesa/stkpush`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${idToken}`,
+          },
+          body: JSON.stringify({
+            phoneNumber: formattedMpesaNumber,
+            amount: finalTotal,
+            orderId: orderId,
+          }),
+        });
+
+        if (!mpesaResponse.ok) {
+          const errorData = await mpesaResponse.json();
+          throw new Error(
+            errorData.error ||
+              `M-Pesa STK Push error! status: ${mpesaResponse.status}`
+          );
+        }
+
+        const mpesaResult = await mpesaResponse.json();
+        toast({
+          title: "M-Pesa Payment Initiated!",
+          description:
+            mpesaResult.customerMessage ||
+            "Please check your phone for the M-Pesa prompt to complete the payment.",
+          variant: "default",
+        });
+
+        clearCart();
+        navigate("/dashboard");
+      } else if (selectedPaymentMethod === "card") {
+        toast({
+          title: "Order Placed Successfully (Demo Card)",
+          description: `Your order #${orderId} has been confirmed. Card payment simulated.`,
+        });
+        clearCart();
+        navigate("/dashboard");
+      } else if (selectedPaymentMethod === "delivery") {
+        toast({
+          title: "Order Placed Successfully!",
+          description: `Your order #${orderId} has been confirmed. Payment on Delivery selected.`,
+        });
+        clearCart();
+        navigate("/dashboard");
+      }
     } catch (error: any) {
-      console.error("Error placing order:", error);
+      console.error("Error placing order or initiating payment:", error);
       toast({
-        title: "Order Placement Failed",
+        title: "Order/Payment Failed",
         description:
           error.message ||
-          "There was an error placing your order. Please try again.",
+          "There was an error processing your order. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -190,13 +293,11 @@ const Checkout: React.FC = () => {
   }
 
   if (!user) {
-    // This `user` comes from AuthContext, still valid for general user info
     navigate("/login");
     return null;
   }
 
   return (
-    // ... (rest of the Checkout component remains the same)
     <div className="min-h-screen bg-background">
       <Navbar />
 
@@ -245,7 +346,10 @@ const Checkout: React.FC = () => {
                           name="phone"
                           type="tel"
                           value={formData.phone}
-                          onChange={handleInputChange}
+                          onChange={handlePhoneNumberChange}
+                          maxLength={10}
+                          pattern="[0-9]{10}"
+                          title="Phone number must be 10 digits (e.g., 07XXXXXXXX)"
                           required
                         />
                       </div>
@@ -352,9 +456,12 @@ const Checkout: React.FC = () => {
                           id="mpesaNumber"
                           name="mpesaNumber"
                           type="tel"
-                          placeholder="e.g., 07XXXXXXXX"
+                          placeholder="e.g., 0712345678"
                           value={mpesaNumber}
-                          onChange={(e) => setMpesaNumber(e.target.value)}
+                          onChange={handleMpesaNumberChange}
+                          maxLength={10}
+                          pattern="07[0-9]{8}"
+                          title="M-Pesa number must start with 07 and be 10 digits long."
                           required
                         />
                       </div>
@@ -383,7 +490,10 @@ const Checkout: React.FC = () => {
                             type="text"
                             placeholder="XXXX XXXX XXXX XXXX"
                             value={cardNumber}
-                            onChange={(e) => setCardNumber(e.target.value)}
+                            onChange={handleCardNumberChange} // New handler
+                            maxLength={19} // 16 digits + 3 spaces
+                            pattern="[0-9]{4} [0-9]{4} [0-9]{4} [0-9]{4}"
+                            title="Card number must be 16 digits (e.g., 1234 5678 9012 3456)"
                             required
                           />
                         </div>
@@ -396,7 +506,10 @@ const Checkout: React.FC = () => {
                               type="text"
                               placeholder="MM/YY"
                               value={cardExpiry}
-                              onChange={(e) => setCardExpiry(e.target.value)}
+                              onChange={handleCardExpiryChange} // New handler
+                              maxLength={5} // MM/YY (5 characters)
+                              pattern="(0[1-9]|1[0-2])\/?([0-9]{2})"
+                              title="Expiry date must be in MM/YY format (e.g., 12/25)"
                               required
                             />
                           </div>
@@ -408,7 +521,10 @@ const Checkout: React.FC = () => {
                               type="text"
                               placeholder="XXX"
                               value={cardCVC}
-                              onChange={(e) => setCardCVC(e.target.value)}
+                              onChange={handleCardCVCChange} // New handler
+                              maxLength={3} // As per XXX request
+                              pattern="[0-9]{3}"
+                              title="CVC must be 3 digits"
                               required
                             />
                           </div>
