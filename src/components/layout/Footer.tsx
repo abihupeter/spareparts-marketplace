@@ -96,7 +96,7 @@ const Footer: React.FC = () => {
           <div className="space-y-4">
             <h4 className="font-medium text-foreground">Contact</h4>
             <div className="space-y-2 text-sm text-muted-foreground hover:scale-105">
-              <p>📧 support@abihushop.com</p>
+              <p>📧 support@tayarispares.com</p>
               <p>📞 +254 794 436 286</p>
               <p>
                 📍 123 Milimani Ave

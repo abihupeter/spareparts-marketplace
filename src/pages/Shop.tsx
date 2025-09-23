@@ -104,8 +104,18 @@ const Shop: React.FC = () => {
       <Navbar />
 
       <div className="container mx-auto px-4 py-8 flex-grow">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-4">Shop Spare Parts</h1>
+        <div className="mb-8flex items-center justify-between">
+          {/* Title */}
+          <h1 className="text-3xl font-bold mb-4">Tayari Spares</h1>
+
+          {/* Logo */}
+          <Link to="/" className="mb-4">
+            <img
+              src="/icons/logo1.png"
+              alt="Logo"
+              className="h-12 w-auto cursor-pointer hover:opacity-80 transition"
+            />
+          </Link>
 
           {/* Search and Sort */}
           <div className="flex flex-col md:flex-row gap-4 mb-6">

@@ -27,6 +27,25 @@ import { useCart } from "../contexts/CartContext";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 import { useTypingEffect } from "../hooks/useTypingEffect";
+import { Skeleton } from "../components/ui/skeleton"; // NEW: Import Skeleton component
+
+// NEW: Skeleton Card Component
+const SkeletonCard = () => (
+  <Card className="group hover:shadow-feature transition-all duration-300">
+    <Skeleton className="aspect-square rounded-t-lg" />
+    <CardContent className="p-4 space-y-3">
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-3/4" />
+        <Skeleton className="h-4 w-1/2" />
+      </div>
+      <div className="flex items-center justify-between">
+        <Skeleton className="h-6 w-1/4" />
+        <Skeleton className="h-4 w-1/6" />
+      </div>
+      <Skeleton className="h-10 w-full" />
+    </CardContent>
+  </Card>
+);
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -35,9 +54,9 @@ const Index = () => {
     products: allProducts,
     isLoading: productsLoading,
     error: productsError,
-  } = useProducts(); // Get products from context
+  } = useProducts();
 
-  const featuredProducts = allProducts.slice(0, 4); // Use allProducts
+  const featuredProducts = allProducts.slice(0, 4);
   const mainHeaderText = "Quality Spare Parts for Every Vehicle";
   const { displayedText: animatedHeaderText, animationComplete } =
     useTypingEffect({
@@ -75,13 +94,13 @@ const Index = () => {
         {/* Typing Welcome Right */}
         <div
           className={`
-    text-primary font-semibold 
-    text-center md:text-right 
-    text-base sm:text-lg md:text-2xl 
+    text-primary font-semibold
+    text-center md:text-right
+    text-base sm:text-lg md:text-2xl
     transition-all duration-1000 ease-in-out
-    transform 
+    transform
     sm:scale-100 sm:opacity-100
-    scale-75 
+    scale-75
   `}
         >
           {animatedWelcomeText}
@@ -153,11 +172,11 @@ const Index = () => {
           </div>
 
           {productsLoading ? (
-            <div className="text-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
-              <p className="text-muted-foreground">
-                Loading featured products...
-              </p>
+            // Replaced the simple loader with skeleton cards
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <SkeletonCard key={index} />
+              ))}
             </div>
           ) : productsError ? (
             <div className="text-center py-12 text-destructive">
