@@ -8,9 +8,11 @@ const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="lg:col-span-1">
-            <div className="font-fonarto text-black text-[40px] font-bold text-4xl text-white">
-              Tayari Spares🔧{" "}
-            </div>
+            <Link to="/panel">
+              <div className="font-fonarto text-black text-[40px] font-bold text-4xl text-white">
+                Tayari Spares🔧{" "}
+              </div>
+            </Link>
           </div>
 
           {/* Quick Links */}
@@ -92,7 +94,7 @@ const Footer: React.FC = () => {
           </div>
 
           {/* Contact Info */}
-          
+
           <div className="space-y-4">
             <h4 className="font-medium text-foreground">Contact</h4>
             <div className="space-y-2 text-sm text-muted-foreground hover:scale-105">

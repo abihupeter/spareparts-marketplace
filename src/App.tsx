@@ -23,7 +23,7 @@ import Faq from "./pages/support/Faq";
 import PrivacyPolicy from "./pages/support/PrivacyPolicy";
 import TermsOfService from "./pages/support/TermsOfService";
 import Returns from "./pages/support/Returns";
-import AdminDashboard from "./pages/AdminDashboard";
+import AdminPanel from "./pages/AdminPanel";
 
 const queryClient = new QueryClient();
 
@@ -55,7 +55,7 @@ const App = () => (
                   <Route path="/privacy" element={<PrivacyPolicy />} />
                   <Route path="/terms" element={<TermsOfService />} />
                   <Route path="/returns" element={<Returns />} />
-                  <Route path="/admin" element={<AdminDashboard />} />
+                  <Route path="/panel" element={<AdminPanel />} />{" "}
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
