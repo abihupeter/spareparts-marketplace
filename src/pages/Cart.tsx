@@ -42,12 +42,12 @@ const Cart: React.FC = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      
+
       <div className="container mx-auto px-4 py-8">
         {/* Breadcrumb */}
         <div className="mb-6">
-          <Link 
-            to="/shop" 
+          <Link
+            to="/shop"
             className="flex items-center text-muted-foreground hover:text-primary transition-colors"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -80,18 +80,24 @@ const Cart: React.FC = () => {
                     <div className="flex-1 space-y-2">
                       <div className="flex flex-col md:flex-row md:items-start md:justify-between">
                         <div className="space-y-1">
-                          <Link 
+                          <Link
                             to={`/product/${item.product.id}`}
                             className="font-semibold hover:text-primary transition-colors"
                           >
                             {item.product.title}
                           </Link>
-                          <p className="text-sm text-muted-foreground">{item.product.brand}</p>
-                          <p className="text-xs text-muted-foreground">Part #: {item.product.partNumber}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {item.product.brand}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Part #: {item.product.partNumber}
+                          </p>
                         </div>
-                        
+
                         <div className="text-right mt-2 md:mt-0">
-                          <p className="text-lg font-bold text-primary">${item.product.price}</p>
+                          <p className="text-lg font-bold text-primary">
+                            ${item.product.price}
+                          </p>
                         </div>
                       </div>
 
@@ -102,16 +108,22 @@ const Cart: React.FC = () => {
                             variant="outline"
                             size="icon"
                             className="h-8 w-8"
-                            onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                            onClick={() =>
+                              updateQuantity(item.product.id, item.quantity - 1)
+                            }
                           >
                             <Minus className="h-4 w-4" />
                           </Button>
-                          <span className="w-12 text-center">{item.quantity}</span>
+                          <span className="w-12 text-center">
+                            {item.quantity}
+                          </span>
                           <Button
                             variant="outline"
                             size="icon"
                             className="h-8 w-8"
-                            onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                            onClick={() =>
+                              updateQuantity(item.product.id, item.quantity + 1)
+                            }
                           >
                             <Plus className="h-4 w-4" />
                           </Button>
@@ -163,7 +175,8 @@ const Cart: React.FC = () => {
                   </div>
                   {totalPrice < 1000 && (
                     <p className="text-xs text-muted-foreground">
-                      Add Ksh.{(1000 - totalPrice).toFixed(2)} more for free shipping
+                      Add Ksh.{(1000 - totalPrice).toFixed(2)} more for free
+                      shipping
                     </p>
                   )}
                 </div>
@@ -178,18 +191,26 @@ const Cart: React.FC = () => {
                 <div className="space-y-3">
                   {user ? (
                     <Link to="/checkout" className="block">
-                      <Button className="w-full" size="lg" variant="hero">
+                      <Button
+                        className="w-full text-white"
+                        size="lg"
+                        variant="hero"
+                      >
                         Proceed to Checkout
                       </Button>
                     </Link>
                   ) : (
                     <Link to="/login" className="block">
-                      <Button className="w-full" size="lg" variant="hero">
+                      <Button
+                        className="w-full text-white"
+                        size="lg"
+                        variant="hero"
+                      >
                         Login to Checkout
                       </Button>
                     </Link>
                   )}
-                  
+
                   <Link to="/shop" className="block">
                     <Button variant="outline" className="w-full">
                       Continue Shopping

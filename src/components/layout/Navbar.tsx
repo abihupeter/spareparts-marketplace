@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ShoppingCart, User, LogOut, Home, Menu, X, Car } from "lucide-react";
+import { ShoppingCart, User, LogOut, Menu, X } from "lucide-react";
 import { Button } from "../ui/button";
 import { useAuth } from "../../contexts/AuthContext";
 import { useCart } from "../../contexts/CartContext";
@@ -40,22 +40,23 @@ const Navbar: React.FC<NavbarProps> = ({ alwaysVisible = false }) => {
     { to: "/contact-us", label: "Contact Us" },
   ];
 
-  // Show navbar only after scroll
-useEffect(() => {
-  if (alwaysVisible) {
-    setShowNavbar(true);
-    return;
-  }
-  
+  // Show navbar only after scrolling down
+  useEffect(() => {
+    if (alwaysVisible) {
+      setShowNavbar(true);
+      return;
+    }
 
-  const handleScroll = () => {
-    setShowNavbar(window.scrollY > 80);
-  };
+    const handleScroll = () => {
+      setShowNavbar(window.scrollY > 80); // only show after 80px scroll
+    };
 
-  window.addEventListener("scroll", handleScroll);
-  return () => window.removeEventListener("scroll", handleScroll);
-}, [alwaysVisible]);
-  // Show navbar on initial load if alwaysVisible is true
+    // Run once on mount
+    handleScroll();
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [alwaysVisible]);
 
   return (
     <nav
