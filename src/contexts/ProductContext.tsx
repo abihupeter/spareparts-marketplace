@@ -1,4 +1,4 @@
-// src/contexts/ProductContext.tsx
+//ProductContext2.tsx;
 import React, {
   createContext,
   useContext,
@@ -6,9 +6,9 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
-import { Product } from "../types";
-import { getAuth } from "firebase/auth"; // Import getAuth from firebase/auth
-import { toast } from "../hooks/use-toast"; // Assuming you have a useToast hook
+import { Product, Order, User } from "../types";
+import { getAuth } from "firebase/auth";
+import { toast } from "../hooks/use-toast";
 
 interface ProductContextType {
   products: Product[];
@@ -18,9 +18,28 @@ interface ProductContextType {
   addNewProduct: (
     productData: Omit<Product, "id" | "vendorId">
   ) => Promise<boolean>;
+  updateProductPrice: (productId: string, newPrice: number) => Promise<boolean>;
+}
+
+interface OrderContextType {
+  orders: Order[];
+  isLoading: boolean;
+  error: string | null;
+  fetchOrders: () => Promise<void>;
+  updateOrderStatus: (orderId: string, newStatus: string) => Promise<boolean>;
+}
+
+interface UserContextType {
+  users: User[];
+  isLoading: boolean;
+  error: string | null;
+  fetchUsers: () => Promise<void>;
+  deleteUser: (userId: string) => Promise<boolean>;
 }
 
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
+const OrderContext = createContext<OrderContextType | undefined>(undefined);
+const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const useProducts = () => {
   const context = useContext(ProductContext);
@@ -30,21 +49,33 @@ export const useProducts = () => {
   return context;
 };
 
-interface ProductProviderProps {
+export const useOrders = () => {
+  const context = useContext(OrderContext);
+  if (context === undefined) {
+    throw new Error("useOrders must be used within an OrderProvider");
+  }
+  return context;
+};
+
+export const useUsers = () => {
+  const context = useContext(UserContext);
+  if (context === undefined) {
+    throw new Error("useUsers must be used within a UserProvider");
+  }
+  return context;
+};
+
+interface ProviderProps {
   children: ReactNode;
 }
 
-export const ProductProvider: React.FC<ProductProviderProps> = ({
-  children,
-}) => {
+export const ProductProvider: React.FC<ProviderProps> = ({ children }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Get Firebase Auth instance
   const auth = getAuth();
-
-  const API_BASE_URL = "http://localhost:5000/api"; // Ensure this matches your backend URL
+  const API_BASE_URL = "http://localhost:5000/api";
 
   const fetchProducts = async () => {
     setIsLoading(true);
@@ -82,14 +113,12 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({
         });
         return false;
       }
-
-      const idToken = await user.getIdToken(); // Get the ID token for authentication
-
+      const idToken = await user.getIdToken();
       const response = await fetch(`${API_BASE_URL}/products`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`, // Send the ID token
+          Authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify(productData),
       });
@@ -100,8 +129,6 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({
           errorData.message || `HTTP error! status: ${response.status}`
         );
       }
-
-      // After successful addition, refetch products to update the list
       await fetchProducts();
       return true;
     } catch (err: any) {
@@ -116,11 +143,64 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({
     }
   };
 
+  const updateProductPrice = async (
+    productId: string,
+    newPrice: number
+  ): Promise<boolean> => {
+    try {
+      const user = auth.currentUser;
+      if (!user) {
+        toast({
+          title: "Authentication Required",
+          description: "You must be logged in to update products.",
+          variant: "destructive",
+        });
+        return false;
+      }
+      const idToken = await user.getIdToken();
+      const response = await fetch(
+        `${API_BASE_URL}/products/${productId}/price`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${idToken}`,
+          },
+          body: JSON.stringify({ price: newPrice }),
+        }
+      );
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message || `HTTP error! status: ${response.status}`
+        );
+      }
+      await fetchProducts();
+      return true;
+    } catch (err: any) {
+      console.error("Failed to update product price:", err);
+      setError(err.message || "Failed to update product price.");
+      toast({
+        title: "Error",
+        description: err.message || "Failed to update product price.",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
   useEffect(() => {
     fetchProducts();
-  }, []); // Fetch products on initial mount
+  }, []);
 
-  const value = { products, isLoading, error, fetchProducts, addNewProduct };
+  const value = {
+    products,
+    isLoading,
+    error,
+    fetchProducts,
+    addNewProduct,
+    updateProductPrice,
+  };
 
   return (
     <ProductContext.Provider value={value}>{children}</ProductContext.Provider>
